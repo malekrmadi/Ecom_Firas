@@ -20,6 +20,7 @@ import DeliveriesPage from "@/pages/admin/DeliveriesPage";
 import StatisticsPage from "@/pages/admin/StatisticsPage";
 
 import NotFound from "@/pages/NotFound";
+import ScrollToTop from "@/components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <CartProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           {/* Store */}
           <Route path="/" element={<HomePage />} />

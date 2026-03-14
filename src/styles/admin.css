@@ -284,7 +284,31 @@
 .delivery-stat .value { font-weight: 600; }
 
 /* ===== RESPONSIVE ===== */
+.admin-mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 300;
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  padding: 8px;
+  border-radius: var(--radius-md);
+  color: var(--fg-main);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+.admin-sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 199;
+}
+
 @media (max-width: 1024px) {
+  .admin-mobile-toggle { display: block; }
+  .admin-sidebar-overlay { display: block; }
   .admin-container { grid-template-columns: 1fr; }
   .admin-sidebar {
     position: fixed;
@@ -299,7 +323,7 @@
   .chart-grid { grid-template-columns: 1fr; }
   .order-details-grid { grid-template-columns: 1fr; }
   .delivery-grid { grid-template-columns: 1fr; }
-  .admin-content { padding: 24px; }
+  .admin-content { padding: 80px 24px 24px; }
 }
 @media (max-width: 640px) {
   .stats-grid { grid-template-columns: 1fr; }

@@ -15,6 +15,11 @@ const navItems = [
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [location]);
 
   const isActive = (path: string) => {
     if (path === "/admin") return location.pathname === "/admin";
@@ -23,7 +28,21 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="admin-container">
-      <aside className="admin-sidebar">
+      <button 
+        className="admin-mobile-toggle" 
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+
+      {isSidebarOpen && (
+        <div 
+          className="admin-sidebar-overlay"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`admin-sidebar ${isSidebarOpen ? "open" : ""}`}>
         <div className="admin-logo">KART ADMIN</div>
         <nav className="admin-nav">
           {navItems.map(item => (
