@@ -1,17 +1,29 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { Search, Filter, Loader2, ChevronRight, Phone, User, Calendar, MapPin } from "lucide-react";
+import { OrderService } from "@/lib/services";
+
+const statusOptions = ["pending", "confirmed", "shipped", "delivered", "rejected"];
 
 const statusClass = (s: string) => `badge-${s.toLowerCase().replace(/ /g, "-")}`;
 
 const OrdersPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState("All");
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["orders"],
-    queryFn: () => api.get("/orders").then(res => res.data),
+    queryFn: OrderService.getAll,
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: number; status: string }) => OrderService.updateStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+    },
   });
 
   const filteredOrders = (orders || []).filter((o: any) => {
@@ -22,42 +34,93 @@ const OrdersPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="admin-page-header">
-        <h1>Orders</h1>
+        <div className="flex items-center gap-3">
+          <h1>Orders</h1>
+          <span className="badge badge-secondary">{filteredOrders.length} matching</span>
+        </div>
       </div>
       <div className="table-wrapper">
         <div className="table-toolbar">
           <div className="table-search">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <Search size={16} />
             <input placeholder="Search orders..." />
           </div>
           <div className="table-actions">
-            {["All", "Pending", "Confirmed", "Delivered"].map(f => (
-              <button key={f} onClick={() => setFilter(f)} className={`btn btn-sm ${f === filter ? "btn-primary" : "btn-secondary"}`}>{f}</button>
-            ))}
+            <Filter size={16} className="text-muted" />
+            <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+              {["All", "Pending", "Confirmed", "Delivered"].map(f => (
+                <button 
+                  key={f} 
+                  onClick={() => setFilter(f)} 
+                  className={`btn btn-xs ${f === filter ? "bg-white shadow-sm font-bold" : "btn-ghost"}`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         <table className="data-table">
           <thead>
-            <tr><th>Order ID</th><th>Customer</th><th>Phone</th><th>Governorate</th><th>Total</th><th>Date</th><th>Status</th><th>Action</th></tr>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Destination</th>
+              <th>Total</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
           </thead>
           <tbody>
             {filteredOrders.map((o: any) => (
               <tr key={o.id}>
                 <td style={{ fontWeight: 600 }}>#{o.id}</td>
-                <td>{o.Customer ? o.Customer.full_name : "Unknown"}</td>
-                <td>{o.Customer ? o.Customer.phone : "-"}</td>
-                <td>{o.governorate}</td>
-                <td className="tabular">{parseFloat(o.total_price || 0).toLocaleString()} TND</td>
-                <td>{new Date(o.created_at).toLocaleDateString()}</td>
-                <td><span className={`badge ${statusClass(o.status || 'pending')}`}>{o.status}</span></td>
-                <td><Link to={`/admin/orders/${o.id}`} className="btn btn-sm btn-secondary">View</Link></td>
+                <td>
+                  <div className="flex flex-col">
+                    <span className="flex items-center gap-1 font-medium"><User size={12} className="text-muted" /> {o.customer_name || o.Customer?.full_name || "Guest"}</span>
+                    <span className="flex items-center gap-1 text-xs text-muted"><Phone size={12} /> {o.customer_phone || o.Customer?.phone || "-"}</span>
+                  </div>
+                </td>
+                <td>
+                  <div className="flex flex-col text-xs">
+                    <span className="flex items-center gap-1"><MapPin size={12} className="text-primary" /> {o.governorate}</span>
+                    <span className="text-muted pl-4">{o.city}</span>
+                  </div>
+                </td>
+                <td className="tabular font-semibold">{parseFloat(o.total_price || 0).toLocaleString()} TND</td>
+                <td className="text-xs text-muted">
+                  <div className="flex items-center gap-1"><Calendar size={12} /> {new Date(o.created_at).toLocaleDateString()}</div>
+                </td>
+                <td>
+                  <div className="inline-flex items-center gap-2">
+                    <select 
+                      className={`status-select-inline badge ${statusClass(o.status || 'pending')}`}
+                      value={o.status || 'pending'}
+                      onChange={(e) => updateStatusMutation.mutate({ id: o.id, status: e.target.value })}
+                      disabled={updateStatusMutation.isPending}
+                    >
+                      {statusOptions.map(s => (
+                        <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                      ))}
+                    </select>
+                    {updateStatusMutation.isPending && updateStatusMutation.variables?.id === o.id && (
+                      <Loader2 size={14} className="animate-spin text-primary" />
+                    )}
+                  </div>
+                </td>
+                <td>
+                  <Link to={`/admin/orders/${o.id}`} className="btn btn-sm btn-icon btn-ghost" title="Detailed View">
+                    <ChevronRight size={18} />
+                  </Link>
+                </td>
               </tr>
             ))}
             {!filteredOrders?.length && !isLoading && (
-              <tr><td colSpan={8} style={{textAlign: "center", padding: "1rem"}}>No orders found</td></tr>
+              <tr><td colSpan={7} className="text-center p-12 text-muted italic">No orders found matching the filter</td></tr>
             )}
             {isLoading && (
-              <tr><td colSpan={8} style={{textAlign: "center", padding: "1rem"}}>Loading...</td></tr>
+              <tr><td colSpan={7} className="text-center p-12"><Loader2 className="animate-spin inline mr-2" /> Loading orders...</td></tr>
             )}
           </tbody>
         </table>

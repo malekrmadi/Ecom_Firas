@@ -13,7 +13,7 @@ const CheckoutPage: React.FC = () => {
   const [form, setForm] = useState({ name: "", phone: "", address: "", governorate: "", city: "", notes: "" });
   const [errorMsg, setErrorMsg] = useState("");
 
-  const delivery = totalPrice >= 200 ? 0 : 7;
+  const delivery = 7;
 
   const createOrderMutation = useMutation({
     mutationFn: (data: any) => api.post("/orders", data),
@@ -42,7 +42,7 @@ const CheckoutPage: React.FC = () => {
       address: form.address,
       note: form.notes,
       items: items.map(item => ({
-        variant_id: item.product.variant_id || item.product.id,
+        variant_id: item.variant.id,
         quantity: item.quantity
       }))
     };
@@ -109,7 +109,7 @@ const CheckoutPage: React.FC = () => {
               ))}
               <div className="cart-summary-row">
                 <span>Delivery</span>
-                <span>{delivery === 0 ? "Free" : `${delivery} TND`}</span>
+                <span>7.000 TND</span>
               </div>
               <div className="cart-summary-row total">
                 <span>Total</span>
