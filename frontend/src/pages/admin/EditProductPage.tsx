@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ProductService, CategoryService, Product, ProductVariant } from "@/lib/services";
-import { Layers, Save, Trash2, AlertCircle, ArrowLeft, Package, Plus, Loader2 } from "lucide-react";
+import { ProductService, CategoryService, AttributeService, Product, ProductVariant } from "@/lib/services";
+import { Layers, Save, Trash2, AlertCircle, ArrowLeft, Package, Plus, Loader2, Tag, X as CloseIcon } from "lucide-react";
 
 const EditProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -270,14 +270,60 @@ const VariantRow = ({ variant, onUpdate }: { variant: any, onUpdate: (data: any)
     onUpdate({ stock: newStock });
   };
 
+  const { data: allAttributes } = useQuery({
+    queryKey: ["attributes"],
+    queryFn: () => ProductService.getById(variant.product_id).then(() => AttributeService.getAll())
+  });
+
+  const addAttrMutation = useMutation({
+    mutationFn: (attributeValueId: number) => ProductService.addVariantAttribute(variant.id, attributeValueId),
+    onSuccess: () => {
+      // Invalidate the specific product query to refresh the row
+      window.location.reload(); // Quickest way for now given the context
+    }
+  });
+
   return (
     <tr className="hover:bg-gray-50/30 transition-colors">
       <td className="py-4">
-        <div className="flex gap-1.5 flex-wrap">
+        <div className="flex gap-2 flex-wrap items-center">
           {variant.AttributeValues?.map((av: any) => (
-            <span key={av.id} className="badge badge-secondary badge-xs py-1 px-2 font-bold">{av.value}</span>
+            <span key={av.id} className="inline-flex items-center gap-1.5 bg-primary/10 text-primary px-2.5 py-1 rounded-lg text-xs font-bold border border-primary/20">
+              {av.Attribute?.name}: {av.value}
+            </span>
           ))}
-          {(!variant.AttributeValues || variant.AttributeValues.length === 0) && <span className="text-muted italic text-xs">Standard</span>}
+          
+          <div className="relative group/attr">
+            <button className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-all">
+              <Plus size={14} />
+            </button>
+            <div className="absolute left-0 top-full mt-2 hidden group-focus-within/attr:block group-hover/attr:block bg-white border border-gray-100 shadow-2xl rounded-2xl p-4 z-50 min-w-[240px] animate-in fade-in slide-in-from-top-2 duration-200">
+               <div className="flex items-center gap-2 mb-3 text-gray-400">
+                  <Tag size={12} />
+                  <span className="text-[10px] uppercase font-bold tracking-widest">Link Attribute</span>
+               </div>
+               <div className="space-y-3 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
+                  {allAttributes?.map((attr: any) => (
+                    <div key={attr.id} className="space-y-1.5">
+                      <span className="text-[10px] font-bold text-gray-500 uppercase">{attr.name}</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {attr.AttributeValues?.map((val: any) => (
+                          <button 
+                            key={val.id}
+                            onClick={() => addAttrMutation.mutate(val.id)}
+                            className="px-2 py-1 bg-gray-50 hover:bg-primary hover:text-white rounded-md text-[10px] font-bold transition-colors border border-gray-200"
+                          >
+                            {val.value}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+               </div>
+            </div>
+          </div>
+
+          {(!variant.AttributeValues || variant.AttributeValues.length === 0) && <span className="text-muted italic text-[10px] uppercase tracking-wide opacity-50 ml-2">No attributes linked</span>}
         </div>
       </td>
       <td className="tabular text-xs font-mono text-slate-500 tracking-tighter">{variant.sku}</td>

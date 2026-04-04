@@ -26,17 +26,23 @@ const ProductPage: React.FC = () => {
   // Extract all unique attributes and their values from the variants
   const attributesMap = useMemo(() => {
     const map: Record<string, Set<string>> = {};
-    product?.ProductVariants?.forEach(v => {
-      v.AttributeValues?.forEach(av => {
-        // Need to find the attribute name. Usually av has Attribute parent or we might need to fetch it.
-        // Assuming av.Attribute.name or similar. Let's check backend or just use a placeholder if unsure.
-        // Based on model index.js: AttributeValue belongsTo Attribute.
-        // So av.Attribute should exist if included.
-        const attrName = (av as any).Attribute?.name || "Option";
-        if (!map[attrName]) map[attrName] = new Set();
-        map[attrName].add(av.value);
+    const variants = product?.ProductVariants || [];
+    
+    // Check if any variant has formal attributes
+    const hasFormalAttributes = variants.some(v => v.AttributeValues && v.AttributeValues.length > 0);
+
+    if (!hasFormalAttributes && variants.length > 1) {
+      // Fallback: Create a virtual "Modèle" attribute using SKUs
+      map["Modèle"] = new Set(variants.map(v => v.sku));
+    } else {
+      variants.forEach(v => {
+        v.AttributeValues?.forEach(av => {
+          const attrName = (av as any).Attribute?.name || "Option";
+          if (!map[attrName]) map[attrName] = new Set();
+          map[attrName].add(av.value);
+        });
       });
-    });
+    }
 
     const result: Record<string, string[]> = {};
     Object.keys(map).forEach(key => {
@@ -58,8 +64,21 @@ const ProductPage: React.FC = () => {
 
   // Find the variant that matches the selected attributes
   const selectedVariant = useMemo(() => {
-    if (!product?.ProductVariants || Object.keys(selectedAttributes).length < Object.keys(attributesMap).length) return null;
+    if (!product?.ProductVariants) return null;
+    
+    // Special case: Only one variant exists or No attributes at all
+    if (product.ProductVariants.length === 1) return product.ProductVariants[0];
+    if (Object.keys(attributesMap).length === 0) return product.ProductVariants[0];
+
+    if (Object.keys(selectedAttributes).length < Object.keys(attributesMap).length) return null;
+    
     return product.ProductVariants.find(v => {
+      // Check if it's the virtual "Modèle" logic
+      if (attributesMap["Modèle"]) {
+        return v.sku === selectedAttributes["Modèle"];
+      }
+
+      // Standard attribute matching
       return Object.entries(selectedAttributes).every(([attrName, attrValue]) => {
         return v.AttributeValues?.some(av => 
           ((av as any).Attribute?.name || "Option") === attrName && av.value === attrValue
@@ -126,12 +145,16 @@ const ProductPage: React.FC = () => {
                 <p className="text-muted leading-relaxed text-lg">{product.description}</p>
               </div>
 
-              {/* Variant Selectors */}
-              <div className="variants-section space-y-6 mb-8 py-6 border-y border-gray-100">
+              <div className="variants-section space-y-8 mb-10 py-8 border-y border-gray-100">
                 {Object.entries(attributesMap).map(([attrName, values]) => (
                   <div key={attrName} className="attribute-selector">
-                    <span className="block text-sm font-bold uppercase tracking-wider mb-3 text-gray-500">Choisir {attrName}</span>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-sm font-bold uppercase tracking-widest text-gray-400">Choisir {attrName}</span>
+                      {selectedAttributes[attrName] && (
+                        <span className="text-sm font-bold text-primary bg-primary/5 px-3 py-1 rounded-full">{selectedAttributes[attrName]}</span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-3">
                       {values.map(val => (
                         <button
                           key={val}
@@ -141,10 +164,10 @@ const ProductPage: React.FC = () => {
                             else next[attrName] = val;
                             return next;
                           })}
-                          className={`px-6 py-3 rounded-xl border-2 transition-all font-bold ${
+                          className={`min-w-[50px] h-12 px-5 rounded-2xl border-2 transition-all duration-300 font-bold flex items-center justify-center ${
                             selectedAttributes[attrName] === val
-                              ? "border-primary bg-primary text-white shadow-lg ring-2 ring-primary/20 scale-105"
-                              : "border-gray-200 hover:border-primary/40 bg-white text-gray-700"
+                              ? "border-primary bg-primary text-white shadow-lg ring-4 ring-primary/10 scale-105"
+                              : "border-gray-100 hover:border-primary/30 bg-white text-gray-700 hover:scale-[1.02]"
                           }`}
                         >
                           {val}
@@ -155,9 +178,9 @@ const ProductPage: React.FC = () => {
                 ))}
               </div>
 
-              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border font-bold w-fit mb-8 shadow-sm transition-all duration-300 ${stockStatus.cls}`}>
-                <stockStatus.icon size={18} className={!isAllSelected ? "animate-bounce" : ""} />
-                {stockStatus.text}
+              <div className={`inline-flex items-center gap-3 px-5 py-3 rounded-2xl border font-bold w-fit mb-10 shadow-sm transition-all duration-500 scale-in-center ${stockStatus.cls}`}>
+                <stockStatus.icon size={20} className={!isAllSelected ? "animate-bounce" : ""} />
+                <span className="text-lg">{stockStatus.text}</span>
               </div>
 
               {isAllSelected && stock > 0 && (
