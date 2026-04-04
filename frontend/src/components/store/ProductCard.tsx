@@ -11,28 +11,34 @@ const ProductCard: React.FC<Props> = ({ product, categoryName }) => {
   const stock = product.ProductVariants?.reduce((acc: number, v: any) => acc + (v.stock || 0), 0) || 0;
   
   const stockLabel = stock === 0
-    ? { text: "Out of stock", cls: "out" }
+    ? { text: "Rupture de stock", cls: "out" }
     : stock <= 5
-    ? { text: `Only ${stock} left`, cls: "low" }
+    ? { text: `Plus que ${stock} restant(s)`, cls: "low" }
     : null;
 
   return (
-    <div className="product-card">
+    <div className="product-card group">
       <Link to={`/product/${product.id}`} className="product-card-img">
         <img src={getPlaceholderImage(product.id)} alt={product.name} loading="lazy" />
+        {product.discount > 0 && <span className="product-card-discount">-{product.discount}%</span>}
       </Link>
       <div className="product-card-info">
-        <span className="product-card-category">{categoryName || "Category"}</span>
+        <div className="flex justify-between items-start mb-2">
+           <span className="product-card-category">{categoryName || "Général"}</span>
+           {stockLabel && <span className={`product-card-stock ${stockLabel.cls} text-[10px] uppercase font-bold`}>{stockLabel.text}</span>}
+        </div>
         <Link to={`/product/${product.id}`}>
-          <h3 className="product-card-name">{product.name}</h3>
+          <h3 className="product-card-name group-hover:text-primary transition-colors">{product.name}</h3>
         </Link>
         <div className="product-card-price">
-          <span className="current">{parseFloat(product.base_price || 0).toLocaleString()} TND</span>
+          <span className="current">{parseFloat(product.base_price || 0).toLocaleString()} <small className="text-[10px] font-bold">TND</small></span>
+          {product.oldPrice && <span className="old">{product.oldPrice} TND</span>}
         </div>
-        {stockLabel && <p className={`product-card-stock ${stockLabel.cls}`}>{stockLabel.text}</p>}
-        <Link to={`/product/${product.id}`}>
-          <button className="product-card-btn">View Product</button>
-        </Link>
+        <div className="mt-auto pt-4">
+           <Link to={`/product/${product.id}`} className="block">
+             <button className="product-card-btn font-bold">Voir Produit</button>
+           </Link>
+        </div>
       </div>
     </div>
   );

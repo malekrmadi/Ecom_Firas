@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { StatsService, OrderService } from "@/lib/services";
 import { TrendingUp, ShoppingBag, RotateCcw, MapPin, Package } from "lucide-react";
 
-const COLORS = ["#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe", "#dbeafe"];
+const COLORS = ["#4f46e5", "#06b6d4", "#10b981", "#8b5cf6", "#f59e0b", "#ec4899"];
 
 const DashboardPage: React.FC = () => {
   const { data: stats, isLoading } = useQuery({ 
@@ -19,9 +19,9 @@ const DashboardPage: React.FC = () => {
   });
 
   const kpis = [
-    { label: "Total Revenue", value: stats?.revenue ? `${parseFloat(stats.revenue).toLocaleString()} TND` : "0 TND", icon: TrendingUp, color: "text-blue-600", bg: "bg-blue-50" },
-    { label: "Total Orders", value: orders ? orders.length : "0", icon: ShoppingBag, color: "text-green-600", bg: "bg-green-50" },
-    { label: "Returns Rate", value: stats?.returnsRate ? `${parseFloat(stats.returnsRate).toFixed(1)}%` : "0%", icon: RotateCcw, color: "text-red-600", bg: "bg-red-50" },
+    { label: "Revenue Totale", value: stats?.revenue ? `${parseFloat(stats.revenue).toLocaleString()} TND` : "0 TND", icon: TrendingUp, color: "text-indigo-600", bg: "bg-indigo-50" },
+    { label: "Commandes", value: orders ? orders.length : "0", icon: ShoppingBag, color: "text-emerald-600", bg: "bg-emerald-50" },
+    { label: "Taux de Retour", value: stats?.returnsRate ? `${parseFloat(stats.returnsRate).toFixed(1)}%` : "0%", icon: RotateCcw, color: "text-rose-600", bg: "bg-rose-50" },
   ];
 
   return (
@@ -61,7 +61,7 @@ const DashboardPage: React.FC = () => {
               <XAxis dataKey="date" fontSize={11} tickLine={false} />
               <YAxis fontSize={12} tickLine={false} axisLine={false} />
               <Tooltip />
-              <Line type="monotone" dataKey="total_revenue" stroke="#2563eb" strokeWidth={3} dot={{ r: 4, fill: "#2563eb" }} />
+              <Line type="monotone" dataKey="total_revenue" stroke="#4f46e5" strokeWidth={4} dot={{ r: 5, fill: "#4f46e5", strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 8 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -92,7 +92,7 @@ const DashboardPage: React.FC = () => {
             <XAxis type="number" fontSize={12} tickLine={false} axisLine={false} />
             <YAxis dataKey="name" type="category" fontSize={11} tickLine={false} width={100} />
             <Tooltip />
-            <Bar dataKey="total_quantity" fill="#2563eb" radius={[0, 4, 4, 0]} barSize={20} />
+            <Bar dataKey="total_quantity" fill="#4f46e5" radius={[0, 8, 8, 0]} barSize={24} />
           </BarChart>
         </ResponsiveContainer>
       </div>

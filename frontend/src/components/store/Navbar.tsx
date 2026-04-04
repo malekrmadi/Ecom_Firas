@@ -16,7 +16,7 @@ const Navbar: React.FC = () => {
   return (
     <nav className="store-navbar">
       <div className="container">
-        <Link to="/" className="store-logo">KART</Link>
+        <Link to="/" className="store-logo">KART<span>STORE</span></Link>
         <ul className={`store-nav-links ${isMobileMenuOpen ? "mobile-open" : ""}`}>
           <li><Link to="/" className={location.pathname === "/" ? "active" : ""}>Home</Link></li>
           <li><Link to="/categories" className={location.pathname.startsWith("/categories") ? "active" : ""}>Categories</Link></li>

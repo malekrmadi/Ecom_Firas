@@ -43,7 +43,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       )}
 
       <aside className={`admin-sidebar ${isSidebarOpen ? "open" : ""}`}>
-        <div className="admin-logo">KART ADMIN</div>
+        <div className="admin-logo">KART<span>ADMIN</span></div>
         <nav className="admin-nav">
           {navItems.map(item => (
             <Link
