@@ -32,7 +32,7 @@ const OrderDetailsPage: React.FC = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["order", id] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
-      alert("Status updated");
+      alert("Statut mis à jour");
     },
   });
 
@@ -40,7 +40,7 @@ const OrderDetailsPage: React.FC = () => {
     mutationFn: () => OrderService.createReturn(order.id, order.customer_id, returnReason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["order", id] });
-      alert("Return recorded and stock updated.");
+      alert("Retour enregistré et stock mis à jour.");
       setShowReturnForm(false);
     },
   });
@@ -51,24 +51,24 @@ const OrderDetailsPage: React.FC = () => {
     updateStatusMutation.mutate(newStatus);
   };
 
-  if (isLoading) return <AdminLayout><p>Loading order...</p></AdminLayout>;
-  if (!order) return <AdminLayout><p>Order not found.</p><Link to="/admin/orders" className="btn btn-secondary">← Back</Link></AdminLayout>;
+  if (isLoading) return <AdminLayout><p>Chargement de la commande...</p></AdminLayout>;
+  if (!order) return <AdminLayout><p>Commande non trouvée.</p><Link to="/admin/orders" className="btn btn-secondary">← Retour</Link></AdminLayout>;
 
   return (
     <AdminLayout>
       <div className="admin-page-header">
         <div className="flex items-center gap-3">
           <Package className="text-primary" size={28} />
-          <h1>Order #{order.id}</h1>
+          <h1>Commande #{order.id}</h1>
         </div>
         <div className="flex gap-2">
           {order.status === "delivered" && (
             <button className="btn btn-secondary" onClick={() => setShowReturnForm(!showReturnform)}>
               <RotateCcw size={16} className="mr-2" />
-              Record Return
+              Enregistrer un Retour
             </button>
           )}
-          <Link to="/admin/orders" className="btn btn-secondary">← Back to Orders</Link>
+          <Link to="/admin/orders" className="btn btn-secondary">← Retour aux Commandes</Link>
         </div>
       </div>
 
@@ -76,14 +76,14 @@ const OrderDetailsPage: React.FC = () => {
         <div className="chart-card mb-6 border-2 border-red-100">
           <h3 className="text-red-700 flex items-center gap-2">
             <RotateCcw size={18} />
-            Record Customer Return
+            Enregistrer un Retour Client
           </h3>
-          <p className="text-sm text-muted mb-4">This will mark the order as 'returned' and automatically re-increment the stock for all items.</p>
+          <p className="text-sm text-muted mb-4">Cela marquera la commande comme 'retournée' et ré-incrémentera automatiquement le stock pour tous les articles.</p>
           <div className="form-group">
-            <label>Reason for return</label>
+            <label>Motif du retour</label>
             <textarea 
               className="form-input" 
-              placeholder="Ex: Damaged item, Wrong size..."
+              placeholder="Ex: Article endommagé, Mauvaise taille..."
               value={returnReason}
               onChange={e => setReturnReason(e.target.value)}
             />
@@ -94,9 +94,9 @@ const OrderDetailsPage: React.FC = () => {
               onClick={() => recordReturnMutation.mutate()}
               disabled={recordReturnMutation.isPending || !returnReason}
             >
-              Confirm Return
+              Confirmer le Retour
             </button>
-            <button className="btn btn-ghost" onClick={() => setShowReturnForm(false)}>Cancel</button>
+            <button className="btn btn-ghost" onClick={() => setShowReturnForm(false)}>Annuler</button>
           </div>
         </div>
       )}
@@ -105,24 +105,24 @@ const OrderDetailsPage: React.FC = () => {
         <div className="detail-card">
           <div className="flex items-center gap-2 mb-4">
             <User size={18} className="text-primary" />
-            <h3 className="m-0">Customer Info</h3>
+            <h3 className="m-0">Infos Client</h3>
           </div>
-          <div className="detail-row"><span className="label">Name</span><span>{order.Customer?.full_name || order.customer_name}</span></div>
-          <div className="detail-row"><span className="label">Phone</span><span>{order.Customer?.phone || order.customer_phone}</span></div>
-          <div className="detail-row"><span className="label">Location</span><span className="flex items-center gap-1"><MapPin size={14}/> {order.governorate}, {order.city}</span></div>
-          <div className="detail-row"><span className="label">Address</span><span>{order.address || order.shipping_address}</span></div>
+          <div className="detail-row"><span className="label">Nom</span><span>{order.Customer?.full_name || order.customer_name}</span></div>
+          <div className="detail-row"><span className="label">Tél</span><span>{order.Customer?.phone || order.customer_phone}</span></div>
+          <div className="detail-row"><span className="label">Localisation</span><span className="flex items-center gap-1"><MapPin size={14}/> {order.governorate}, {order.city}</span></div>
+          <div className="detail-row"><span className="label">Adresse</span><span>{order.address || order.shipping_address}</span></div>
           {order.note && <div className="detail-row"><span className="label">Note</span><span className="italic">"{order.note}"</span></div>}
         </div>
 
         <div className="detail-card">
           <div className="flex items-center gap-2 mb-4">
              <Truck size={18} className="text-primary" />
-             <h3 className="m-0">Status & Timing</h3>
+             <h3 className="m-0">Statut et Timing</h3>
           </div>
-          <div className="detail-row"><span className="label">Order Date</span><span className="flex items-center gap-1"><Calendar size={14}/> {new Date(order.created_at).toLocaleString()}</span></div>
-          <div className="detail-row"><span className="label">Current State</span><span className={`badge badge-${order.status?.toLowerCase().replace(/ /g, "-") || 'pending'}`}>{order.status}</span></div>
+          <div className="detail-row"><span className="label">Date de Commande</span><span className="flex items-center gap-1"><Calendar size={14}/> {new Date(order.created_at).toLocaleString()}</span></div>
+          <div className="detail-row"><span className="label">État Actuel</span><span className={`badge badge-${order.status?.toLowerCase().replace(/ /g, "-") || 'pending'}`}>{order.status}</span></div>
           <div style={{ marginTop: "16px" }}>
-            <label className="block mb-2 text-sm font-medium">Update Progression</label>
+            <label className="block mb-2 text-sm font-medium">Mettre à jour la progression</label>
             <select className="status-select w-full" value={status} onChange={handleStatusChange} disabled={updateStatusMutation.isPending}>
               {statuses.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
@@ -138,7 +138,7 @@ const OrderDetailsPage: React.FC = () => {
           </h3>
         </div>
         <table className="data-table">
-          <thead><tr><th>Item ID</th><th>Unit Price</th><th>Qty</th><th>Total</th></tr></thead>
+          <thead><tr><th>ID Article</th><th>Prix Unitaire</th><th>Qté</th><th>Total</th></tr></thead>
           <tbody>
             {(order.OrderItems || []).map((item: any, i: number) => (
               <tr key={i}>
@@ -155,10 +155,10 @@ const OrderDetailsPage: React.FC = () => {
       <div className="detail-card mt-6 ml-auto max-w-sm border-t-4 border-primary">
         <div className="flex items-center gap-2 mb-4">
           <CreditCard size={18} className="text-primary" />
-          <h3 className="m-0">Financial Summary</h3>
+          <h3 className="m-0">Résumé Financier</h3>
         </div>
         <div className="detail-row total text-xl font-bold">
-          <span>Amount Paid</span>
+          <span>Montant Total</span>
           <span className="text-primary">{parseFloat(order.total_price || order.total_amount || 0).toLocaleString()} TND</span>
         </div>
       </div>

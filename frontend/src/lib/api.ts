@@ -1,11 +1,10 @@
 import axios from 'axios';
 
 // Get backend URL from env vars or fallback to localhost directly
+export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: API_BASE,
 });
 
 // Helper for images since DB doesn't have images

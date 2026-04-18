@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { getPlaceholderImage } from "@/lib/api";
+import { useStoreSettings } from "@/contexts/StoreSettingsContext";
 
 interface Props {
   product: any;
@@ -8,6 +9,7 @@ interface Props {
 }
 
 const ProductCard: React.FC<Props> = ({ product, categoryName }) => {
+  const { getImageUrl } = useStoreSettings();
   const stock = product.ProductVariants?.reduce((acc: number, v: any) => acc + (v.stock || 0), 0) || 0;
   
   const stockLabel = stock === 0
@@ -19,7 +21,11 @@ const ProductCard: React.FC<Props> = ({ product, categoryName }) => {
   return (
     <div className="product-card group">
       <Link to={`/product/${product.id}`} className="product-card-img">
-        <img src={getPlaceholderImage(product.id)} alt={product.name} loading="lazy" />
+        <img 
+          src={product.image_url ? getImageUrl(product.image_url) : getPlaceholderImage(product.id)} 
+          alt={product.name} 
+          loading="lazy" 
+        />
         {product.discount > 0 && <span className="product-card-discount">-{product.discount}%</span>}
       </Link>
       <div className="product-card-info">
@@ -36,7 +42,7 @@ const ProductCard: React.FC<Props> = ({ product, categoryName }) => {
         </div>
         <div className="mt-auto pt-4">
            <Link to={`/product/${product.id}`} className="block">
-             <button className="product-card-btn font-bold">Voir Produit</button>
+             <button className="product-card-btn font-bold">Voir le Produit</button>
            </Link>
         </div>
       </div>

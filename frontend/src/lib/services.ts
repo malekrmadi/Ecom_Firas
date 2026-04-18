@@ -28,8 +28,23 @@ export interface Product {
   description: string;
   base_price: number;
   category_id: number;
+  image_url?: string;
   is_active: boolean;
   ProductVariants?: ProductVariant[];
+}
+
+export interface StoreSettings {
+  id?: number;
+  store_name: string;
+  logo_url: string;
+  hero_title: string;
+  hero_subtitle: string;
+  banner_image_url: string;
+  facebook_url: string;
+  instagram_url: string;
+  primary_color: string;
+  secondary_color: string;
+  accent_color: string;
 }
 
 export const AttributeService = {
@@ -43,8 +58,8 @@ export const AttributeService = {
 export const ProductService = {
   getAll: () => api.get("/products").then(res => res.data),
   getById: (id: number | string) => api.get(`/products/${id}`).then(res => res.data),
-  create: (data: Partial<Product>) => api.post("/products", data).then(res => res.data),
-  update: (id: number | string, data: Partial<Product>) => api.put(`/products/${id}`, data).then(res => res.data),
+  create: (data: FormData | Partial<Product>) => api.post("/products", data).then(res => res.data),
+  update: (id: number | string, data: FormData | Partial<Product>) => api.put(`/products/${id}`, data).then(res => res.data),
   delete: (id: number | string) => api.delete(`/products/${id}`),
   
   // Variants
@@ -71,8 +86,8 @@ export const OrderService = {
 
 export const CategoryService = {
   getAll: () => api.get("/categories").then(res => res.data),
-  create: (data: any) => api.post("/categories", data).then(res => res.data),
-  update: (id: number | string, data: any) => api.put(`/categories/${id}`, data).then(res => res.data),
+  create: (data: FormData | any) => api.post("/categories", data).then(res => res.data),
+  update: (id: number | string, data: FormData | any) => api.put(`/categories/${id}`, data).then(res => res.data),
   delete: (id: number | string) => api.delete(`/categories/${id}`),
 };
 
@@ -90,4 +105,9 @@ export const StatsService = {
     ordersByGov: responses[3].data,
     returnsRate: responses[4].data.returns_rate
   })),
+};
+
+export const StoreSettingsService = {
+  get: () => api.get("/store-settings").then(res => res.data),
+  update: (data: FormData) => api.put("/store-settings", data).then(res => res.data),
 };

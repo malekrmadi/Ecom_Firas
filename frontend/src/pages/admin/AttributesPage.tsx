@@ -75,22 +75,22 @@ const AttributesPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="admin-page-header">
-        <h1>Global Attributes</h1>
-        <p className="text-muted">Manage attributes (e.g., Size, Color) and their values for product variants.</p>
+        <h1>Attributs Globaux</h1>
+        <p className="text-muted">Gérez les attributs (ex: Taille, Couleur) et leurs valeurs pour les variantes de produits.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Add Attribute Form */}
         <div className="chart-card">
-          <h3>Add New Attribute</h3>
+          <h3>Ajouter un Attribut</h3>
           <form onSubmit={handleAddAttribute} className="mt-4 space-y-4">
             <div className="form-group">
-              <label>Attribute Name (e.g. Color)</label>
+              <label>Nom de l'attribut (ex: Couleur)</label>
               <input 
                 className="form-input" 
                 value={newAttributeName} 
                 onChange={e => setNewAttributeName(e.target.value)}
-                placeholder="Name..."
+                placeholder="Nom..."
               />
             </div>
             <button 
@@ -99,7 +99,7 @@ const AttributesPage: React.FC = () => {
               disabled={createAttributeMutation.isPending}
             >
               <Plus size={16} className="mr-2" />
-              {createAttributeMutation.isPending ? "Creating..." : "Create Attribute"}
+              {createAttributeMutation.isPending ? "Création..." : "Créer l'Attribut"}
             </button>
           </form>
         </div>
@@ -107,7 +107,7 @@ const AttributesPage: React.FC = () => {
         {/* Attributes List */}
         <div className="md:col-span-2">
           {isLoading ? (
-            <div className="text-center p-8">Loading attributes...</div>
+            <div className="text-center p-8">Chargement des attributs...</div>
           ) : (
             <div className="space-y-6">
               {(attributes || []).map(attr => (
@@ -120,7 +120,7 @@ const AttributesPage: React.FC = () => {
                     <button 
                       className="btn btn-sm btn-danger btn-ghost"
                       onClick={() => {
-                        if (window.confirm(`Delete attribute "${attr.name}" and all its values?`)) {
+                        if (window.confirm(`Supprimer l'attribut "${attr.name}" et toutes ses valeurs ?`)) {
                           deleteAttributeMutation.mutate(attr.id);
                         }
                       }}
@@ -142,14 +142,14 @@ const AttributesPage: React.FC = () => {
                       </div>
                     ))}
                     {(!attr.AttributeValues || attr.AttributeValues.length === 0) && (
-                      <span className="text-muted text-sm italic">No values defined</span>
+                      <span className="text-muted text-sm italic">Aucune valeur définie</span>
                     )}
                   </div>
 
                   <div className="flex gap-2">
                     <input 
                       className="form-input form-input-sm" 
-                      placeholder="Add value (e.g. Red)"
+                      placeholder="Ajouter une valeur (ex: Rouge)"
                       value={newValueMap[attr.id] || ""}
                       onChange={e => setNewValueMap(prev => ({ ...prev, [attr.id]: e.target.value }))}
                       onKeyDown={e => e.key === 'Enter' && handleAddValue(attr.id)}
@@ -159,14 +159,14 @@ const AttributesPage: React.FC = () => {
                       onClick={() => handleAddValue(attr.id)}
                       disabled={createValueMutation.isPending}
                     >
-                      Add
+                      Ajouter
                     </button>
                   </div>
                 </div>
               ))}
               {attributes?.length === 0 && (
                 <div className="chart-card text-center p-12 text-muted">
-                  No attributes found. Start by creating one like "Size" or "Color".
+                  Aucun attribut trouvé. Commencez par en créer un comme "Taille" ou "Couleur".
                 </div>
               )}
             </div>

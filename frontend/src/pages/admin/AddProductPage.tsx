@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProductService, CategoryService, AttributeService, Attribute, AttributeValue } from "@/lib/services";
-import { Plus, Trash2, Layers, Check, X } from "lucide-react";
+import { Plus, Trash2, Layers, Check, X, Upload, Image as ImageIcon } from "lucide-react";
 
 interface VariantForm {
   sku: string;
@@ -22,6 +22,8 @@ const AddProductPage: React.FC = () => {
   const [categoryId, setCategoryId] = useState("");
   const [basePrice, setBasePrice] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Variant Management
   const [useVariants, setUseVariants] = useState(false);
@@ -76,33 +78,55 @@ const AddProductPage: React.FC = () => {
     });
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("La taille de l'image doit être inférieure à 5 Mo");
+        return;
+      }
+      setImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !categoryId || !basePrice) {
-      alert("Please fill required fields");
+      alert("Veuillez remplir les champs obligatoires");
       return;
     }
 
     setIsSaving(true);
     try {
       const productPrice = parseFloat(basePrice);
-      // 1. Create Product
-      const product = await ProductService.create({
-        name,
-        slug: name.toLowerCase().replace(/ /g, '-'),
-        description,
-        base_price: productPrice,
-        category_id: parseInt(categoryId, 10),
-        is_active: true
-      });
+      
+      // 1. Prepare FormData for Product
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('slug', name.toLowerCase().replace(/ /g, '-'));
+      formData.append('description', description);
+      formData.append('base_price', productPrice.toString());
+      formData.append('category_id', categoryId);
+      formData.append('is_active', 'true');
+      if (image) {
+        formData.append('image', image);
+      }
 
-      // 2. Create Variants
+      // 2. Create Product
+      const product = await ProductService.create(formData);
+
+      // 3. Create Variants
       if (useVariants && generatedVariants.length > 0) {
         for (const vForm of generatedVariants) {
           try {
             const variant = await ProductService.createVariant(product.id, {
               sku: vForm.sku,
-              price: productPrice, // Multi-price simplified: always use base price
+              price: productPrice,
               stock: vForm.stock
             });
 
@@ -111,7 +135,7 @@ const AddProductPage: React.FC = () => {
             }
           } catch (vErr: any) {
             const msg = vErr.response?.data?.error || vErr.message;
-            throw new Error(`Variant "${vForm.sku}" failed: ${msg}`);
+            throw new Error(`Échec de la variante "${vForm.sku}" : ${msg}`);
           }
         }
       } else if (!useVariants) {
@@ -126,7 +150,7 @@ const AddProductPage: React.FC = () => {
       navigate("/admin/products");
     } catch (err: any) {
       console.error(err);
-      alert(err.message || "Failed to save product.");
+      alert(err.message || "Échec de l'enregistrement du produit.");
     } finally {
       setIsSaving(false);
     }
@@ -135,20 +159,20 @@ const AddProductPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="admin-page-header">
-        <h1>Add New Product</h1>
-        <Link to="/admin/products" className="btn btn-secondary">← Back</Link>
+        <h1>Ajouter un Nouveau Produit</h1>
+        <Link to="/admin/products" className="btn btn-secondary">← Retour</Link>
       </div>
 
       <form className="admin-form space-y-8" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
             <section className="chart-card">
-              <h2 className="text-xl font-bold mb-6">General Information</h2>
+              <h2 className="text-xl font-bold mb-6">Informations Générales</h2>
               <div className="form-group mb-6">
-                <label className="block text-sm font-bold mb-2">Product Name*</label>
+                <label className="block text-sm font-bold mb-2">Nom du Produit*</label>
                 <input 
                   className="form-input" 
-                  placeholder="e.g. Traditional Kaftan" 
+                  placeholder="ex: Robe Traditionnelle Kabyle" 
                   value={name} 
                   onChange={e => setName(e.target.value)} 
                   required 
@@ -160,9 +184,58 @@ const AddProductPage: React.FC = () => {
                   className="form-input" 
                   value={description} 
                   onChange={e => setDescription(e.target.value)} 
-                  placeholder="Premium tunisian craftmanship..." 
+                  placeholder="Artisanat premium tunisien..." 
                   rows={6} 
                 />
+              </div>
+
+              <div className="form-group">
+                <label className="block text-sm font-bold mb-4">Image du Produit</label>
+                <div className="flex flex-col md:flex-row gap-6">
+                  <div 
+                    className={`relative w-full md:w-48 h-48 rounded-2xl border-2 border-dashed transition-all flex items-center justify-center overflow-hidden bg-gray-50 ${
+                      imagePreview ? 'border-primary/30' : 'border-gray-200 hover:border-primary/50'
+                    }`}
+                  >
+                    {imagePreview ? (
+                      <>
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                        <button 
+                          type="button"
+                          onClick={() => { setImage(null); setImagePreview(null); }}
+                          className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="text-center p-4">
+                        <Upload className="mx-auto text-gray-400 mb-2" size={24} />
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Charger Photo</p>
+                      </div>
+                    )}
+                    <input 
+                      type="file" 
+                      className="absolute inset-0 opacity-0 cursor-pointer" 
+                      onChange={handleImageChange}
+                      accept="image/jpeg,image/png,image/jpg,image/webp"
+                    />
+                  </div>
+                  <div className="flex-1 space-y-3 pt-2">
+                    <p className="text-xs text-muted flex items-center gap-2">
+                      <Check size={14} className="text-green-500" />
+                      Formats : JPEG, PNG, JPG, WEBP
+                    </p>
+                    <p className="text-xs text-muted flex items-center gap-2">
+                      <Check size={14} className="text-green-500" />
+                      Taille Max : 5 Mo
+                    </p>
+                    <p className="text-xs text-muted flex items-center gap-2">
+                      <ImageIcon size={14} className="text-blue-500" />
+                      Des photos claires et lumineuses sont préférables
+                    </p>
+                  </div>
+                </div>
               </div>
             </section>
 
@@ -170,7 +243,7 @@ const AddProductPage: React.FC = () => {
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
                   <Layers size={22} className="text-primary" />
-                  <h2 className="text-xl font-bold m-0">Dynamic Variants</h2>
+                  <h2 className="text-xl font-bold m-0">Variantes Dynamiques</h2>
                 </div>
                 <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full">
                   <input 
@@ -180,21 +253,21 @@ const AddProductPage: React.FC = () => {
                     onChange={e => setUseVariants(e.target.checked)} 
                     className="w-4 h-4 cursor-pointer"
                   />
-                  <label className="text-xs font-bold uppercase cursor-pointer" htmlFor="use-variants">Enable</label>
+                  <label className="text-xs font-bold uppercase cursor-pointer" htmlFor="use-variants">Activer</label>
                 </div>
               </div>
 
               {!useVariants ? (
                 <div className="p-8 text-center bg-gray-50 border border-dashed border-gray-200 rounded-2xl">
                   <Layers className="mx-auto text-gray-300 mb-3" size={40} />
-                  <p className="text-muted text-sm max-w-xs mx-auto">Enable variants to manage multiple sizes, colors, or materials for this product.</p>
+                  <p className="text-muted text-sm max-w-xs mx-auto">Activez les variantes pour gérer plusieurs tailles, couleurs ou matériaux pour ce produit.</p>
                 </div>
               ) : (
                 <div className="space-y-8">
                   {/* Step 1: Selection */}
                   <div className="space-y-6">
                     <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100">
-                      <p className="text-xs font-bold text-blue-600 mb-4 uppercase tracking-wider">1. Configure Options</p>
+                      <p className="text-xs font-bold text-blue-600 mb-4 uppercase tracking-wider">1. Configurer les Options</p>
                       <div className="flex flex-wrap gap-2 mb-6">
                         {attributes?.map(attr => (
                           <button 
@@ -216,7 +289,7 @@ const AddProductPage: React.FC = () => {
                         const attr = attributes?.find(a => a.id === attrId);
                         return (
                           <div key={attrId} className="mb-4 last:mb-0">
-                            <span className="text-xs font-bold text-gray-500 mb-2 block">{attr?.name} Values:</span>
+                            <span className="text-xs font-bold text-gray-500 mb-2 block">Valeurs de {attr?.name} :</span>
                             <div className="flex flex-wrap gap-2">
                               {attr?.AttributeValues?.map(val => (
                                 <button 
@@ -243,7 +316,7 @@ const AddProductPage: React.FC = () => {
                         onClick={handleGenerateVariants}
                         disabled={selectedAttributeIds.length === 0}
                       >
-                        <Check size={18} /> Generate Variants Preview
+                        <Check size={18} /> Générer l'Aperçu des Variantes
                       </button>
                     </div>
                   </div>
@@ -251,7 +324,7 @@ const AddProductPage: React.FC = () => {
                   {/* Step 2: Preview Table */}
                   {generatedVariants.length > 0 && (
                     <div className="space-y-4">
-                      <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">2. Review & Stocking ({generatedVariants.length} variants)</p>
+                      <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">2. Révision et Stock ({generatedVariants.length} variantes)</p>
                       <div className="table-wrapper border border-gray-100 rounded-xl overflow-hidden shadow-sm">
                         <table className="data-table">
                           <thead className="bg-gray-50">
@@ -318,9 +391,9 @@ const AddProductPage: React.FC = () => {
 
           <div className="space-y-8">
             <section className="chart-card">
-              <h2 className="text-xl font-bold mb-6">Pricing & Category</h2>
+              <h2 className="text-xl font-bold mb-6">Prix et Catégorie</h2>
               <div className="form-group mb-6">
-                <label className="block text-sm font-bold mb-2">Base Price (TND)*</label>
+                <label className="block text-sm font-bold mb-2">Prix de Base (TND)*</label>
                 <div className="relative">
                   <input 
                     className="form-input pl-12 font-bold text-lg" 
@@ -333,12 +406,12 @@ const AddProductPage: React.FC = () => {
                   />
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">DT</div>
                 </div>
-                <p className="text-[10px] text-muted mt-2 uppercase tracking-wide">Applied to all variants automatically</p>
+                <p className="text-[10px] text-muted mt-2 uppercase tracking-wide">Appliqué à toutes les variantes automatiquement</p>
               </div>
               <div className="form-group">
-                <label className="block text-sm font-bold mb-2">Category*</label>
+                <label className="block text-sm font-bold mb-2">Catégorie*</label>
                 <select className="form-input" value={categoryId} onChange={e => setCategoryId(e.target.value)} required>
-                  <option value="">Select category</option>
+                  <option value="">Sélectionner une catégorie</option>
                   {(categories || []).map((c: any) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
@@ -349,17 +422,17 @@ const AddProductPage: React.FC = () => {
             <section className="p-6 bg-primary/5 border border-primary/20 rounded-2xl">
               <h3 className="text-sm font-bold flex items-center gap-2 mb-4">
                 <Check size={18} className="text-primary" />
-                Ready to Publish?
+                Prêt à Publier ?
               </h3>
               <p className="text-xs text-slate-600 mb-6 leading-relaxed">
-                Check all variants and pricing before creating. The product will be immediately visible in the store.
+                Vérifiez toutes les variantes et les prix avant de créer. Le produit sera immédiatement visible en magasin.
               </p>
               <button 
                 type="submit" 
                 className="btn btn-primary w-full py-3 h-auto font-bold shadow-lg shadow-primary/20" 
                 disabled={isSaving}
               >
-                {isSaving ? "Creating..." : "Publish Product"}
+                {isSaving ? "Création..." : "Publier le Produit"}
               </button>
             </section>
           </div>

@@ -29,7 +29,7 @@ const DashboardPage: React.FC = () => {
       <div className="admin-page-header">
         <div className="flex items-center gap-3">
           <Package className="text-primary" size={28} />
-          <h1>Store Performance</h1>
+          <h1>Performance de la Boutique</h1>
         </div>
       </div>
 
@@ -53,7 +53,7 @@ const DashboardPage: React.FC = () => {
         <div className="chart-card">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp size={18} className="text-primary" />
-            <h3 className="m-0">Sales Over Time</h3>
+            <h3 className="m-0">Évolution des Ventes</h3>
           </div>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={stats?.salesOverTime || []}>
@@ -68,7 +68,7 @@ const DashboardPage: React.FC = () => {
         <div className="chart-card">
           <div className="flex items-center gap-2 mb-4">
             <MapPin size={18} className="text-primary" />
-            <h3 className="m-0">Orders by Region</h3>
+            <h3 className="m-0">Commandes par Gouvernorat</h3>
           </div>
           <ResponsiveContainer width="100%" height={280}>
             <PieChart>
@@ -84,7 +84,7 @@ const DashboardPage: React.FC = () => {
       <div className="chart-card mt-8">
         <div className="flex items-center gap-2 mb-4">
           <Package size={18} className="text-primary" />
-          <h3 className="m-0">Top Performing Products</h3>
+          <h3 className="m-0">Produits les plus vendus</h3>
         </div>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={stats?.topProducts || []} layout="vertical">
@@ -99,12 +99,12 @@ const DashboardPage: React.FC = () => {
 
       <div className="table-wrapper mt-8">
         <div className="table-toolbar">
-          <h3 className="m-0 text-md font-bold">Recent Orders</h3>
+          <h3 className="m-0 text-md font-bold">Commandes Récentes</h3>
         </div>
         <table className="data-table">
           <thead>
             <tr>
-              <th>Order ID</th><th>Customer</th><th>Governorate</th><th>Total</th><th>Status</th>
+              <th>ID Commande</th><th>Client</th><th>Gouvernorat</th><th>Total</th><th>Statut</th>
             </tr>
           </thead>
           <tbody>
@@ -118,7 +118,7 @@ const DashboardPage: React.FC = () => {
               </tr>
             ))}
             {!orders?.length && !isLoading && (
-              <tr><td colSpan={5} className="text-center p-12 text-muted">No sales activity yet.</td></tr>
+              <tr><td colSpan={5} className="text-center p-12 text-muted">Aucune activité de vente pour le moment.</td></tr>
             )}
           </tbody>
         </table>

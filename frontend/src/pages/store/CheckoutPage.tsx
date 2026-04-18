@@ -1,17 +1,23 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { governorates } from "@/data/mock";
 import { useCart } from "@/contexts/CartContext";
 import Navbar from "@/components/store/Navbar";
 import Footer from "@/components/store/Footer";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { CreditCard, AlertTriangle, Check, X, Loader2 } from "lucide-react";
 
 const CheckoutPage: React.FC = () => {
   const { items, totalPrice, clearCart } = useCart();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", phone: "", address: "", governorate: "", city: "", notes: "" });
+  const [form, setForm] = useState({ fullName: "", phone: "", address: "", governorate: "", city: "", notes: "" });
   const [errorMsg, setErrorMsg] = useState("");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
 
   const delivery = 7;
 
@@ -35,7 +41,7 @@ const CheckoutPage: React.FC = () => {
     setErrorMsg("");
 
     const orderPayload = {
-      customer_name: form.name,
+      customer_name: form.fullName,
       customer_phone: form.phone,
       governorate: form.governorate,
       city: form.city,
@@ -46,74 +52,101 @@ const CheckoutPage: React.FC = () => {
         quantity: item.quantity
       }))
     };
-
     createOrderMutation.mutate(orderPayload);
   };
 
-  const update = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+  if (items.length === 0) {
+    return (
+      <>
+        <Navbar />
+        <div className="container py-24 text-center">
+          <h2>Votre panier est vide</h2>
+          <p className="text-muted mt-2">Vous ne pouvez pas passer commande sans articles.</p>
+          <Link to="/categories" className="btn btn-primary mt-6">Retour à la boutique</Link>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
       <Navbar />
       <div className="checkout-page">
         <div className="container">
-          <h1>Checkout</h1>
+          <h1>Finaliser la Commande</h1>
           <div className="checkout-layout">
-            <form className="checkout-form" onSubmit={handleSubmit}>
-              <h2>Shipping Information</h2>
-              {errorMsg && <div style={{ color: "red", marginBottom: "1rem" }}>{errorMsg}</div>}
-              <div className="form-group">
-                <label>Full Name</label>
-                <input className="form-input" placeholder="Nom et Prénom" required value={form.name} onChange={e => update("name", e.target.value)} />
+            <form onSubmit={handleSubmit} className="checkout-form">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                  <span className="font-bold">1</span>
+                </div>
+                <h2 className="m-0">Informations de Livraison</h2>
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Phone Number</label>
-                  <input className="form-input" type="tel" placeholder="22 123 456" required value={form.phone} onChange={e => update("phone", e.target.value)} />
+                  <label>Nom complet*</label>
+                  <input className="form-input" placeholder="Ex: Ahmed Ben Ali" required name="fullName" value={form.fullName} onChange={handleChange} />
                 </div>
                 <div className="form-group">
-                  <label>Governorate</label>
-                  <select className="form-input" required value={form.governorate} onChange={e => update("governorate", e.target.value)}>
-                    <option value="">Select governorate</option>
-                    {governorates.map(g => <option key={g} value={g}>{g}</option>)}
-                  </select>
+                  <label>Téléphone*</label>
+                  <input className="form-input" placeholder="Ex: 55 123 456" required name="phone" value={form.phone} onChange={handleChange} />
                 </div>
               </div>
               <div className="form-group">
-                <label>City</label>
-                <input className="form-input" placeholder="City" required value={form.city} onChange={e => update("city", e.target.value)} />
+                <label>Adresse de livraison*</label>
+                <textarea className="form-input" placeholder="Votre adresse complète..." required name="address" value={form.address} onChange={handleChange} rows={3} />
               </div>
-              <div className="form-group">
-                <label>Full Address</label>
-                <textarea className="form-input" placeholder="Street, Building, Apartment..." required value={form.address} onChange={e => update("address", e.target.value)} />
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Ville*</label>
+                  <input className="form-input" placeholder="Ex: Tunis" required name="city" value={form.city} onChange={handleChange} />
+                </div>
+                <div className="form-group">
+                  <label>Gouvernorat*</label>
+                  <input className="form-input" placeholder="Ex: Ariana" required name="governorate" value={form.governorate} onChange={handleChange} />
+                </div>
               </div>
-              <div className="form-group">
-                <label>Notes (optional)</label>
-                <textarea className="form-input" placeholder="Any special delivery instructions..." value={form.notes} onChange={e => update("notes", e.target.value)} />
-              </div>
+              {errorMsg && <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 text-sm border border-red-100">{errorMsg}</div>}
               <div className="payment-notice">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                <div><strong>Cash on Delivery</strong><br /><span style={{ fontSize: "0.8125rem" }}>Paiement à la livraison</span></div>
+                <CreditCard size={20} />
+                <span><strong>Paiement à la livraison :</strong> Vous paierez en espèces lorsque vous recevrez votre commande.</span>
               </div>
-              <button type="submit" className="btn btn-primary btn-lg" style={{ width: "100%", marginTop: "24px" }} disabled={createOrderMutation.isPending}>
-                {createOrderMutation.isPending ? "Processing..." : `Confirm Order (${(totalPrice + delivery).toLocaleString()} TND)`}
+              <button type="submit" className="btn btn-primary btn-lg w-full mt-8" disabled={createOrderMutation.isPending}>
+                {createOrderMutation.isPending ? "Traitement..." : "Confirmer la Commande"}
               </button>
             </form>
-            <div className="cart-summary">
-              <h3>Order Summary</h3>
-              {items.map(item => (
-                <div key={item.product.id} className="cart-summary-row">
-                  <span>{item.product.name} × {item.quantity}</span>
-                  <span className="tabular">{(item.product.price * item.quantity).toLocaleString()} TND</span>
+            <div className="checkout-summary">
+              <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
+                <h3 className="mb-6">Récapitulatif</h3>
+                <div className="space-y-4 max-h-[300px] overflow-y-auto mb-6 pr-2">
+                  {items.map(item => (
+                    <div key={item.variant.id} className="flex gap-3 text-sm">
+                      <div className="w-12 h-12 rounded-lg bg-white border border-gray-100 overflow-hidden flex-shrink-0">
+                        <img src={item.product.image_url ? `http://localhost:3000${item.product.image_url}` : `https://via.placeholder.com/100?text=Product`} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-semibold line-clamp-1">{item.product.name}</div>
+                        <div className="text-muted text-[10px]">{Object.values(item.attributes).join(' / ')}</div>
+                        <div className="text-[11px] font-bold">{item.quantity} x {parseFloat(item.variant.price || item.product.base_price).toLocaleString()} TND</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              <div className="cart-summary-row">
-                <span>Delivery</span>
-                <span>7.000 TND</span>
-              </div>
-              <div className="cart-summary-row total">
-                <span>Total</span>
-                <span className="tabular">{(totalPrice + delivery).toLocaleString()} TND</span>
+                <div className="space-y-3 pt-6 border-t border-gray-200">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted">Sous-total</span>
+                    <span className="font-medium">{totalPrice.toLocaleString()} TND</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted">Frais de livraison</span>
+                    <span className="font-medium">7.000 TND</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-bold mt-4 pt-4 border-t border-gray-100">
+                    <span>Total à payer</span>
+                    <span className="text-primary">{(totalPrice + 7).toLocaleString()} TND</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -35,15 +35,15 @@ const OrdersPage: React.FC = () => {
     <AdminLayout>
       <div className="admin-page-header">
         <div className="flex items-center gap-3">
-          <h1>Orders</h1>
-          <span className="badge badge-secondary">{filteredOrders.length} matching</span>
+          <h1>Commandes</h1>
+          <span className="badge badge-secondary">{filteredOrders.length} trouvées</span>
         </div>
       </div>
       <div className="table-wrapper">
         <div className="table-toolbar">
           <div className="table-search">
             <Search size={16} />
-            <input placeholder="Search orders..." />
+            <input placeholder="Rechercher des commandes..." />
           </div>
           <div className="table-actions">
             <Filter size={16} className="text-muted" />
@@ -54,7 +54,7 @@ const OrdersPage: React.FC = () => {
                   onClick={() => setFilter(f)} 
                   className={`btn btn-xs ${f === filter ? "bg-white shadow-sm font-bold" : "btn-ghost"}`}
                 >
-                  {f}
+                  {f === "All" ? "Toutes" : f === "Pending" ? "En Attente" : f === "Confirmed" ? "Confirmées" : "Livrées"}
                 </button>
               ))}
             </div>
@@ -63,12 +63,12 @@ const OrdersPage: React.FC = () => {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Order ID</th>
-              <th>Customer</th>
+              <th>ID Commande</th>
+              <th>Client</th>
               <th>Destination</th>
               <th>Total</th>
               <th>Date</th>
-              <th>Status</th>
+              <th>Statut</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -101,7 +101,12 @@ const OrdersPage: React.FC = () => {
                       disabled={updateStatusMutation.isPending}
                     >
                       {statusOptions.map(s => (
-                        <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                        <option key={s} value={s}>
+                          {s === 'pending' ? 'En Attente' : 
+                           s === 'confirmed' ? 'Confirmée' : 
+                           s === 'shipped' ? 'Expédiée' : 
+                           s === 'delivered' ? 'Livrée' : 'Rejetée'}
+                        </option>
                       ))}
                     </select>
                     {updateStatusMutation.isPending && updateStatusMutation.variables?.id === o.id && (
@@ -117,10 +122,10 @@ const OrdersPage: React.FC = () => {
               </tr>
             ))}
             {!filteredOrders?.length && !isLoading && (
-              <tr><td colSpan={7} className="text-center p-12 text-muted italic">No orders found matching the filter</td></tr>
+              <tr><td colSpan={7} className="text-center p-12 text-muted italic">Aucune commande ne correspond à ce filtre</td></tr>
             )}
             {isLoading && (
-              <tr><td colSpan={7} className="text-center p-12"><Loader2 className="animate-spin inline mr-2" /> Loading orders...</td></tr>
+              <tr><td colSpan={7} className="text-center p-12"><Loader2 className="animate-spin inline mr-2" /> Chargement des commandes...</td></tr>
             )}
           </tbody>
         </table>

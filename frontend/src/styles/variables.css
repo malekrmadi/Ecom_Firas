@@ -14,9 +14,17 @@
   --primary-hover: #4338ca;
   --primary-light: #eef2ff;
   --primary-active: #3730a3;
+  --primary-text: #ffffff;
+  
+  --secondary: #1e293b;
+  --secondary-hover: #0f172a;
+  --secondary-light: #f1f5f9;
+  --secondary-text: #ffffff;
   
   --accent: #f59e0b;
   --accent-hover: #d97706;
+  --accent-light: #fffbeb;
+  --accent-text: #ffffff;
   
   --border: rgba(15, 23, 42, 0.08);
   --border-strong: rgba(15, 23, 42, 0.12);
@@ -115,14 +123,23 @@ input, select, textarea { font-family: inherit; font-size: 1rem; }
 }
 
 .btn-secondary {
-  background: var(--bg-main);
-  color: var(--fg-main);
-  border: 1px solid var(--border-strong);
-  box-shadow: var(--shadow-sm);
+  background: var(--secondary);
+  color: var(--secondary-text);
+  box-shadow: 0 4px 12px rgba(30, 41, 59, 0.2);
 }
 .btn-secondary:hover {
-  background: var(--bg-subtle);
-  border-color: var(--fg-light);
+  background: var(--secondary-hover);
+  box-shadow: 0 6px 20px rgba(30, 41, 59, 0.3);
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: var(--accent-text);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+.btn-accent:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
 }
 
 .btn-danger {

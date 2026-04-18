@@ -6,11 +6,13 @@ import Footer from "@/components/store/Footer";
 import { useQuery } from "@tanstack/react-query";
 import { api, getPlaceholderImage } from "@/lib/api";
 import { ProductService, Product, ProductVariant } from "@/lib/services";
+import { useStoreSettings } from "@/contexts/StoreSettingsContext";
 import { Check, X, AlertTriangle, ShoppingCart, ArrowLeft, Loader2 } from "lucide-react";
 
 const ProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { addItem } = useCart();
+  const { getImageUrl } = useStoreSettings();
 
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState(1);
@@ -123,7 +125,7 @@ const ProductPage: React.FC = () => {
             <div className="product-gallery">
               <div className="aspect-square bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm relative group">
                 <img 
-                  src={getPlaceholderImage(String(product.id))} 
+                  src={product.image_url ? getImageUrl(product.image_url) : getPlaceholderImage(String(product.id))} 
                   alt={product.name} 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                 />

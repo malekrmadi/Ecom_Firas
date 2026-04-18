@@ -15,26 +15,26 @@ const CustomersPage: React.FC = () => {
       <div className="admin-page-header">
         <div className="flex items-center gap-3">
           <User className="text-primary" size={28} />
-          <h1>Customer Database</h1>
+          <h1>Base de Données Clients</h1>
         </div>
-        <p className="text-muted">Track your customer history, loyalty, and lifetime value.</p>
+        <p className="text-muted">Suivez l'historique de vos clients, leur fidélité et leur valeur totale.</p>
       </div>
 
       <div className="table-wrapper">
         <div className="table-toolbar">
           <div className="table-search">
             <Search size={16} />
-            <input placeholder="Search by name or phone..." />
+            <input placeholder="Rechercher par nom ou téléphone..." />
           </div>
         </div>
         <table className="data-table">
           <thead>
             <tr>
-              <th>Customer</th>
+              <th>Client</th>
               <th>Contact</th>
-              <th>Orders</th>
-              <th>Total Spent</th>
-              <th>Returns</th>
+              <th>Commandes</th>
+              <th>Total Dépensé</th>
+              <th>Retours</th>
             </tr>
           </thead>
           <tbody>
@@ -78,10 +78,10 @@ const CustomersPage: React.FC = () => {
               </tr>
             ))}
             {!customers?.length && !isLoading && (
-              <tr><td colSpan={5} className="text-center p-12 text-muted">No premium customers found yet.</td></tr>
+              <tr><td colSpan={5} className="text-center p-12 text-muted">Aucun client trouvé pour le moment.</td></tr>
             )}
             {isLoading && (
-              <tr><td colSpan={5} className="text-center p-12">Analyzing customer data...</td></tr>
+              <tr><td colSpan={5} className="text-center p-12">Analyse des données clients...</td></tr>
             )}
           </tbody>
         </table>

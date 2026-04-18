@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
+import { StoreSettingsProvider } from "@/contexts/StoreSettingsContext";
+
 
 import HomePage from "@/pages/store/HomePage";
 import CategoriesPage from "@/pages/store/CategoriesPage";
@@ -21,6 +23,9 @@ import OrderDetailsPage from "@/pages/admin/OrderDetailsPage";
 import CustomersPage from "@/pages/admin/CustomersPage";
 import AttributesPage from "@/pages/admin/AttributesPage";
 import ReturnsPage from "@/pages/admin/ReturnsPage";
+import StoreSettingsPage from "@/pages/admin/StoreSettingsPage";
+import MyStoreAgentPage from "@/pages/admin/MyStoreAgentPage";
+
 
 import NotFound from "@/pages/NotFound";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -29,7 +34,8 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <CartProvider>
+    <StoreSettingsProvider>
+      <CartProvider>
       <BrowserRouter>
         <ScrollToTop />
         <Routes>
@@ -56,11 +62,14 @@ const App = () => (
           <Route path="/admin/returns" element={<ReturnsPage />} />
           <Route path="/admin/customers" element={<CustomersPage />} />
           <Route path="/admin/attributes" element={<AttributesPage />} />
+          <Route path="/admin/settings" element={<StoreSettingsPage />} />
+          <Route path="/admin/agent" element={<MyStoreAgentPage />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </CartProvider>
+      </CartProvider>
+    </StoreSettingsProvider>
   </QueryClientProvider>
 );
 

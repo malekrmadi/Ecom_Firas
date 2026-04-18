@@ -1,6 +1,8 @@
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import Navbar from "@/components/store/Navbar";
 import Footer from "@/components/store/Footer";
+import { Check } from "lucide-react";
 
 const OrderConfirmationPage: React.FC = () => {
   const location = useLocation();
@@ -9,36 +11,29 @@ const OrderConfirmationPage: React.FC = () => {
   return (
     <>
       <Navbar />
-      <div className="confirmation-page">
-        <div className="container">
-          <div className="confirmation-icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
+      <div className="confirmation-page py-24">
+        <div className="container text-center max-w-xl">
+          <div className="confirmation-icon w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-8">
+            <Check size={40} className="text-green-600" />
           </div>
-          <h1>Order Confirmed!</h1>
-          <p className="order-id">Order {orderId}</p>
-          <div className="confirmation-details">
-            <h3>Order Summary</h3>
-            <div className="confirmation-row">
-              <span className="label">Order ID</span>
-              <span>{orderId}</span>
-            </div>
-            <div className="confirmation-row">
-              <span className="label">Payment Method</span>
-              <span>Cash on Delivery</span>
-            </div>
-            <div className="confirmation-row">
-              <span className="label">Status</span>
-              <span className="badge badge-pending">Pending</span>
+          <h1 className="text-3xl font-bold mb-2">Merci pour votre commande !</h1>
+          <p className="text-muted text-lg mb-8">Numéro de commande : <span className="font-bold text-fg-main">#{orderId}</span></p>
+          
+          <div className="confirmation-details bg-gray-50 p-8 rounded-2xl border border-gray-100 text-left mb-12">
+            <h3 className="text-lg font-bold mb-4">Détails de la livraison</h3>
+            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+              Votre commande a été enregistrée avec succès. Notre équipe vous contactera par téléphone dans les plus brefs délais pour confirmer l'expédition.
+            </p>
+            <div className="flex justify-between items-center py-3 border-t border-gray-200">
+              <span className="text-muted text-sm">Mode de paiement</span>
+              <span className="font-bold text-sm">Paiement à la livraison</span>
             </div>
           </div>
-          <p style={{ color: "var(--fg-muted)", marginBottom: "24px" }}>
-            Thank you for your order! We'll contact you shortly to confirm delivery details.
-          </p>
-          <Link to="/">
-            <button className="btn btn-primary btn-lg">Continue Shopping</button>
-          </Link>
+          
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link to="/" className="btn btn-primary btn-lg">Retour à l'accueil</Link>
+            <Link to="/categories" className="btn btn-secondary btn-lg">Continuer mes achats</Link>
+          </div>
         </div>
       </div>
       <Footer />

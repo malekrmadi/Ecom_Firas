@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProductService, CategoryService } from "@/lib/services";
-import { getPlaceholderImage } from "@/lib/api";
+import { getPlaceholderImage, API_BASE } from "@/lib/api";
 import { Edit, Trash2, Plus, Search, ChevronDown, ChevronRight, PackageOpen } from "lucide-react";
 
 const ProductsPage: React.FC = () => {
@@ -53,28 +53,28 @@ const ProductsPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="admin-page-header">
-        <h1>Products</h1>
+        <h1>Produits</h1>
         <Link to="/admin/products/new" className="btn btn-primary">
           <Plus size={18} className="mr-2" />
-          Add Product
+          Ajouter un Produit
         </Link>
       </div>
       <div className="table-wrapper">
         <div className="table-toolbar">
           <div className="table-search">
             <Search size={16} />
-            <input placeholder="Search products..." />
+            <input placeholder="Rechercher des produits..." />
           </div>
         </div>
         <table className="data-table">
           <thead>
             <tr>
               <th style={{ width: "40px" }}></th>
-              <th>Product</th>
-              <th>Category</th>
-              <th>Base Price</th>
-              <th>Total Stock</th>
-              <th>Status</th>
+              <th>Produit</th>
+              <th>Catégorie</th>
+              <th>Prix de Base</th>
+              <th>Stock Total</th>
+              <th>Statut</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -96,7 +96,11 @@ const ProductsPage: React.FC = () => {
                       </button>
                     </td>
                     <td style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                      <img src={getPlaceholderImage(p.id)} alt="" className="product-thumb" />
+                      <img 
+                        src={p.image_url ? `${API_BASE}${p.image_url}` : getPlaceholderImage(p.id)} 
+                        alt="" 
+                        className="product-thumb" 
+                      />
                       <span style={{ fontWeight: 500 }}>{p.name}</span>
                     </td>
                     <td>{categoriesMap[p.category_id] || "Unknown"}</td>
@@ -104,8 +108,8 @@ const ProductsPage: React.FC = () => {
                     <td className="tabular">{stock}</td>
                     <td>
                       {stock === 0 && (!p.ProductVariants || p.ProductVariants.length > 0)
-                        ? <span className="badge badge-out-of-stock">Out of stock</span>
-                        : <span className={`badge badge-${p.is_active ? 'active' : 'draft'}`}>{p.is_active ? 'Active' : 'Draft'}</span>
+                        ? <span className="badge badge-out-of-stock">Rupture</span>
+                        : <span className={`badge badge-${p.is_active ? 'active' : 'draft'}`}>{p.is_active ? 'Actif' : 'Brouillon'}</span>
                       }
                     </td>
                     <td>
@@ -115,7 +119,7 @@ const ProductsPage: React.FC = () => {
                           onClick={() => navigate(`/admin/products/${p.id}`)}
                         >
                           <Edit size={14} className="mr-1" />
-                          Edit
+                          Modifier
                         </button>
                         <button 
                           className="btn btn-sm btn-danger btn-ghost" 
@@ -132,16 +136,16 @@ const ProductsPage: React.FC = () => {
                         <div className="variant-details-subview">
                           <div className="flex items-center gap-2 mb-3 px-4 pt-3">
                             <PackageOpen size={16} className="text-primary" />
-                            <h4 className="m-0 text-sm font-semibold">Variant Stock Breakdown</h4>
+                            <h4 className="m-0 text-sm font-semibold">Détail du Stock par Variante</h4>
                           </div>
                           <table className="sub-table w-full">
                             <thead>
-                              <tr>
-                                <th style={{ paddingLeft: "48px" }}>SKU</th>
-                                <th>Combination</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                              </tr>
+                                <tr>
+                                  <th style={{ paddingLeft: "48px" }}>SKU</th>
+                                  <th>Combinaison</th>
+                                  <th>Prix</th>
+                                  <th>Stock</th>
+                                </tr>
                             </thead>
                             <tbody>
                               {(p.ProductVariants || []).map((v: any) => (
@@ -154,7 +158,7 @@ const ProductsPage: React.FC = () => {
                                           {av.value}
                                         </span>
                                       ))}
-                                      {(!v.AttributeValues || v.AttributeValues.length === 0) && <span className="text-muted text-xs italic">Default</span>}
+                                      {(!v.AttributeValues || v.AttributeValues.length === 0) && <span className="text-muted text-xs italic">Par défaut</span>}
                                     </div>
                                   </td>
                                   <td className="tabular">{parseFloat(v.price || 0).toLocaleString()} TND</td>
@@ -167,7 +171,7 @@ const ProductsPage: React.FC = () => {
                               ))}
                               {(!p.ProductVariants || p.ProductVariants.length === 0) && (
                                 <tr>
-                                  <td colSpan={4} className="text-center p-4 text-muted italic">No variants defined</td>
+                                  <td colSpan={4} className="text-center p-4 text-muted italic">Aucune variante définie</td>
                                 </tr>
                               )}
                             </tbody>
@@ -180,10 +184,10 @@ const ProductsPage: React.FC = () => {
               );
             })}
             {!products?.length && !isLoading && (
-              <tr><td colSpan={7} style={{textAlign: "center", padding: "1rem"}}>No products found</td></tr>
+              <tr><td colSpan={7} style={{textAlign: "center", padding: "1rem"}}>Aucun produit trouvé</td></tr>
             )}
             {isLoading && (
-              <tr><td colSpan={7} style={{textAlign: "center", padding: "1rem"}}>Loading...</td></tr>
+              <tr><td colSpan={7} style={{textAlign: "center", padding: "1rem"}}>Chargement...</td></tr>
             )}
           </tbody>
         </table>

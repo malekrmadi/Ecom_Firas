@@ -18,25 +18,25 @@ const monthlySales = [
 const StatisticsPage: React.FC = () => (
   <AdminLayout>
     <div className="admin-page-header">
-      <h1>Statistics</h1>
+      <h1>Statistiques</h1>
     </div>
 
     <div className="chart-grid">
       <div className="chart-card">
-        <h3>Revenue Over Time</h3>
+        <h3>Revenus au fil du Temps</h3>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={monthlySales}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
             <XAxis dataKey="month" fontSize={12} tickLine={false} />
             <YAxis fontSize={12} tickLine={false} axisLine={false} />
             <Tooltip />
-            <Line type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 4 }} name="Revenue (TND)" />
-            <Line type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} name="Orders" />
+            <Line type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 4 }} name="Revenu (TND)" />
+            <Line type="monotone" dataKey="orders" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} name="Commandes" />
           </LineChart>
         </ResponsiveContainer>
       </div>
       <div className="chart-card">
-        <h3>Orders by Governorate</h3>
+        <h3>Commandes par Gouvernorat</h3>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie data={ordersByGovernorate} cx="50%" cy="50%" outerRadius={110} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} fontSize={11}>
@@ -49,21 +49,21 @@ const StatisticsPage: React.FC = () => (
     </div>
 
     <div className="chart-card" style={{ marginBottom: "32px" }}>
-      <h3>Sales by Product</h3>
+      <h3>Ventes par Produit</h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={salesByProduct}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
           <XAxis dataKey="name" fontSize={11} tickLine={false} />
           <YAxis fontSize={12} tickLine={false} axisLine={false} />
           <Tooltip />
-          <Bar dataKey="sales" fill="#2563eb" radius={[4, 4, 0, 0]} name="Revenue (TND)" />
+          <Bar dataKey="sales" fill="#2563eb" radius={[4, 4, 0, 0]} name="Revenu (TND)" />
         </BarChart>
       </ResponsiveContainer>
     </div>
 
     <div className="chart-grid">
       <div className="chart-card">
-        <h3>Sales Over Time</h3>
+        <h3>Volume des Ventes</h3>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={salesData}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
@@ -75,13 +75,13 @@ const StatisticsPage: React.FC = () => (
         </ResponsiveContainer>
       </div>
       <div className="chart-card">
-        <h3>Key Metrics</h3>
+        <h3>Indicateurs Clés</h3>
         <div style={{ display: "flex", flexDirection: "column", gap: "16px", paddingTop: "16px" }}>
           {[
-            { label: "Conversion Rate", value: "3.2%", change: "+0.5%" },
-            { label: "Avg. Order Value", value: "228 TND", change: "+12%" },
-            { label: "Return Rate", value: "4.1%", change: "-0.8%" },
-            { label: "Repeat Customers", value: "38%", change: "+5%" },
+            { label: "Taux de Conversion", value: "3.2%", change: "+0.5%" },
+            { label: "Panier Moyen", value: "228 TND", change: "+12%" },
+            { label: "Taux de Retour", value: "4.1%", change: "-0.8%" },
+            { label: "Fidélisation Clients", value: "38%", change: "+5%" },
           ].map(m => (
             <div key={m.label} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid var(--border)" }}>
               <span style={{ color: "var(--fg-muted)", fontSize: "0.875rem" }}>{m.label}</span>

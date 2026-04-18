@@ -318,3 +318,15 @@
 @media (max-width: 640px) {
   .stats-grid { grid-template-columns: 1fr; }
 }
+
+/* ===== CHATBOT OVERRIDES ===== */
+.chat-input-forced {
+  color: #020617 !important;
+  background-color: #f1f5f9 !important;
+  font-weight: 700 !important;
+}
+
+.chat-input-forced::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}

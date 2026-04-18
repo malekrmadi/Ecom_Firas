@@ -6,8 +6,10 @@ import HeroBanner from "@/components/store/HeroBanner";
 import ProductCard from "@/components/store/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import { api, getPlaceholderImage } from "@/lib/api";
+import { useStoreSettings } from "@/contexts/StoreSettingsContext";
 
 const HomePage: React.FC = () => {
+  const { getImageUrl } = useStoreSettings();
   const { data: products, isLoading: isLoadingProducts } = useQuery({
     queryKey: ["products"],
     queryFn: () => api.get("/products").then(res => res.data),
@@ -28,9 +30,8 @@ const HomePage: React.FC = () => {
     return map;
   }, [categories]);
 
-  // If backend does not support flag like popular or featured we just fallback to slice of items
-  const popularProducts = (products || []).slice(0, 4);
-  const featuredProducts = (products || []).slice(4, 8);
+  // On ne garde que les produits populaires, on supprime les produits vedettes
+  const popularProducts = (products || []).slice(0, 8);
 
   return (
     <>
@@ -40,11 +41,14 @@ const HomePage: React.FC = () => {
       <section className="store-section">
         <div className="container">
           <div className="section-header">
-            <h2>Popular Products</h2>
-            <Link to="/categories">View All →</Link>
+            <div className="section-header-info">
+              <h2>Produits Populaires</h2>
+              <p>Découvrez nos meilleures ventes du moment.</p>
+            </div>
+            <Link to="/categories" className="text-accent font-bold">Voir Tout →</Link>
           </div>
           <div className="products-grid">
-            {isLoadingProducts ? <p>Loading...</p> : popularProducts.map((p: any) => <ProductCard key={p.id} product={p} categoryName={categoriesMap[p.category_id]} />)}
+            {isLoadingProducts ? <p>Chargement...</p> : popularProducts.map((p: any) => <ProductCard key={p.id} product={p} categoryName={categoriesMap[p.category_id]} />)}
           </div>
         </div>
       </section>
@@ -52,17 +56,23 @@ const HomePage: React.FC = () => {
       <section className="store-section" style={{ background: "var(--bg-subtle)" }}>
         <div className="container">
           <div className="section-header">
-            <h2>Shop by Category</h2>
-            <Link to="/categories">View All →</Link>
+            <div className="section-header-info">
+              <h2>Acheter par Catégorie</h2>
+              <p>Explorez notre sélection par type de produit.</p>
+            </div>
+            <Link to="/categories" className="text-accent font-bold">Voir Tout →</Link>
           </div>
           <div className="categories-grid">
             {isLoadingCategories ? <p>Loading categories...</p> : (categories || []).map((cat: any) => (
               <Link to={`/categories/${cat.slug}`} key={cat.id} className="category-card">
-                <img src={getPlaceholderImage(`cat_${cat.id}`)} alt={cat.name} loading="lazy" />
+                <img 
+                  src={cat.image_url ? getImageUrl(cat.image_url) : getPlaceholderImage(`cat_${cat.id}`)} 
+                  alt={cat.name} 
+                  loading="lazy" 
+                />
                 <div className="category-card-overlay">
                   <h3>{cat.name}</h3>
-                  {/* Backend category endpoints do not natively return count without include, so we display "View Products" */}
-                  <span>View Products</span>
+                  <span>Voir les Produits</span>
                 </div>
               </Link>
             ))}
@@ -70,17 +80,6 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      <section className="store-section">
-        <div className="container">
-          <div className="section-header">
-            <h2>Featured Products</h2>
-            <Link to="/categories">View All →</Link>
-          </div>
-          <div className="products-grid">
-            {isLoadingProducts ? <p>Loading...</p> : featuredProducts.map((p: any) => <ProductCard key={p.id} product={p} categoryName={categoriesMap[p.category_id]} />)}
-          </div>
-        </div>
-      </section>
 
       <Footer />
     </>

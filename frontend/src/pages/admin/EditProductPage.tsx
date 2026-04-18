@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProductService, CategoryService, AttributeService, Product, ProductVariant } from "@/lib/services";
-import { Layers, Save, Trash2, AlertCircle, ArrowLeft, Package, Plus, Loader2, Tag, X as CloseIcon } from "lucide-react";
+import { API_BASE } from "@/lib/api";
+import { Layers, Save, Trash2, AlertCircle, ArrowLeft, Package, Plus, Loader2, Tag, X as CloseIcon, Upload, Image as ImageIcon, X, Check } from "lucide-react";
 
 const EditProductPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,8 @@ const EditProductPage: React.FC = () => {
     is_active: true
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Fetch product data
   const { data: product, isLoading: loadingProduct } = useQuery({
@@ -42,15 +45,34 @@ const EditProductPage: React.FC = () => {
         category_id: product.category_id,
         is_active: product.is_active
       });
+      if (product.image_url && !image) {
+        setImagePreview(`${API_BASE}${product.image_url}`);
+      }
     }
   }, [product]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("La taille de l'image doit être inférieure à 5 Mo");
+        return;
+      }
+      setImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const updateProductMutation = useMutation({
-    mutationFn: (data: Partial<Product>) => ProductService.update(id!, data),
+    mutationFn: (data: FormData | Partial<Product>) => ProductService.update(id!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["product", id] });
-      alert("Product updated successfully");
+      alert("Produit mis à jour avec succès");
     },
   });
 
@@ -69,7 +91,7 @@ const EditProductPage: React.FC = () => {
     },
     onError: (err: any) => {
       const msg = err.response?.data?.error || err.message;
-      alert(`Failed to add variant: ${msg}`);
+      alert(`Échec de l'ajout de la variante : ${msg}`);
     }
   });
 
@@ -77,10 +99,21 @@ const EditProductPage: React.FC = () => {
     e.preventDefault();
     setIsSaving(true);
     try {
-      await updateProductMutation.mutateAsync({
-        ...formData,
-        slug: formData.name?.toLowerCase().replace(/ /g, '-')
-      });
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name || "");
+      formDataToSend.append('slug', (formData.name || "").toLowerCase().replace(/ /g, '-'));
+      formDataToSend.append('description', formData.description || "");
+      formDataToSend.append('base_price', (formData.base_price || 0).toString());
+      formDataToSend.append('category_id', (formData.category_id || 0).toString());
+      formDataToSend.append('is_active', formData.is_active ? 'true' : 'false');
+      
+      if (image) {
+        formDataToSend.append('image', image);
+      }
+
+      await updateProductMutation.mutateAsync(formDataToSend);
+    } catch (err: any) {
+      alert(err.message || "Échec de la mise à jour du produit");
     } finally {
       setIsSaving(false);
     }
@@ -95,18 +128,18 @@ const EditProductPage: React.FC = () => {
       <div className="admin-page-header">
         <div className="flex items-center gap-4">
           <Link to="/admin/products" className="btn btn-icon btn-ghost"><ArrowLeft size={20} /></Link>
-          <h1 className="text-2xl font-bold">Edit Product: {product?.name}</h1>
+          <h1 className="text-2xl font-bold">Modifier : {product?.name}</h1>
         </div>
         <div className="flex items-center gap-3">
            <div className="bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm flex items-center gap-3">
               <Package size={18} className="text-primary" />
               <div className="flex flex-col">
-                <span className="text-[10px] text-muted uppercase font-bold tracking-wider leading-none">Total Stock</span>
-                <span className="text-sm font-bold">{totalStock} units</span>
+                <span className="text-[10px] text-muted uppercase font-bold tracking-wider leading-none">Stock Total</span>
+                <span className="text-sm font-bold">{totalStock} unités</span>
               </div>
            </div>
            <button onClick={handleSubmit} className="btn btn-primary" disabled={isSaving}>
-             {isSaving ? "Saving..." : <span className="flex items-center gap-2"><Save size={18} /> Update Product</span>}
+             {isSaving ? "Enregistrement..." : <span className="flex items-center gap-2"><Save size={18} /> Mettre à jour</span>}
            </button>
         </div>
       </div>
@@ -115,9 +148,9 @@ const EditProductPage: React.FC = () => {
         <div className="lg:col-span-2 space-y-8">
           {/* Main Info */}
           <form className="admin-form chart-card space-y-6">
-            <h2 className="text-xl font-bold m-0">General Details</h2>
+            <h2 className="text-xl font-bold m-0">Informations Générales</h2>
             <div className="form-group">
-              <label className="block text-sm font-bold mb-2">Product Name*</label>
+              <label className="block text-sm font-bold mb-2">Nom du Produit*</label>
               <input 
                 className="form-input" 
                 value={formData.name} 
@@ -134,9 +167,62 @@ const EditProductPage: React.FC = () => {
                 rows={5} 
               />
             </div>
+
+            <div className="form-group border-t border-gray-100 pt-6 mt-6">
+              <label className="block text-sm font-bold mb-4">Image du Produit</label>
+              <div className="flex flex-col md:flex-row gap-6">
+                <div 
+                  className={`relative w-full md:w-48 h-48 rounded-2xl border-2 border-dashed transition-all flex items-center justify-center overflow-hidden bg-gray-50 ${
+                    imagePreview ? 'border-primary/30' : 'border-gray-200 hover:border-primary/50'
+                  }`}
+                >
+                  {imagePreview ? (
+                    <>
+                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      <button 
+                        type="button"
+                        onClick={() => { 
+                          setImage(null); 
+                          setImagePreview(product?.image_url ? `${API_BASE}${product.image_url}` : null); 
+                        }}
+                        className="absolute top-2 right-2 p-1.5 bg-gray-800/80 text-white rounded-full shadow-lg hover:bg-red-500 transition-colors"
+                      >
+                        <X size={14} />
+                      </button>
+                    </>
+                  ) : (
+                    <div className="text-center p-4">
+                      <Upload className="mx-auto text-gray-400 mb-2" size={24} />
+                      <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Charger Nouvelle Photo</p>
+                    </div>
+                  )}
+                  <input 
+                    type="file" 
+                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                    onChange={handleImageChange}
+                    accept="image/jpeg,image/png,image/jpg,image/webp"
+                  />
+                </div>
+                <div className="flex-1 space-y-3 pt-2">
+                  <p className="text-xs text-muted flex items-center gap-2">
+                    <Check size={14} className="text-green-500" />
+                    Statut : {product?.image_url ? 'Image personnalisée' : 'Image par défaut'}
+                  </p>
+                  <p className="text-xs text-muted flex items-center gap-2">
+                    <Upload size={14} className="text-primary" />
+                    Sélectionnez un nouveau fichier pour remplacer l'actuel
+                  </p>
+                  <p className="text-xs text-muted flex items-center gap-2">
+                    <ImageIcon size={14} className="text-blue-500" />
+                    Taille idéale : 800x800px, Moins de 5Mo
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="form-row grid grid-cols-2 gap-4">
               <div className="form-group">
-                <label className="block text-sm font-bold mb-2">Category*</label>
+                <label className="block text-sm font-bold mb-2">Catégorie*</label>
                 <select 
                   className="form-input" 
                   value={formData.category_id} 
@@ -149,14 +235,14 @@ const EditProductPage: React.FC = () => {
                 </select>
               </div>
               <div className="form-group">
-                <label className="block text-sm font-bold mb-2">Product Status</label>
+                <label className="block text-sm font-bold mb-2">Statut du Produit</label>
                 <select 
                   className="form-input" 
                   value={formData.is_active ? "true" : "false"}
                   onChange={e => setFormData({ ...formData, is_active: e.target.value === "true" })}
                 >
-                  <option value="true">Active & Visible</option>
-                  <option value="false">Hidden / Draft</option>
+                  <option value="true">Actif et Visible</option>
+                  <option value="false">Masqué / Brouillon</option>
                 </select>
               </div>
             </div>
@@ -169,16 +255,16 @@ const EditProductPage: React.FC = () => {
                 <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                    <Layers size={22} />
                 </div>
-                <h2 className="text-xl font-bold m-0">Inventory & Variants</h2>
+                <h2 className="text-xl font-bold m-0">Inventaire et Variantes</h2>
               </div>
               <button 
                 className="btn btn-secondary btn-sm"
                 onClick={() => {
-                   const sku = prompt("Enter SKU for new variant:");
+                   const sku = prompt("Entrez le SKU pour la nouvelle variante :");
                    if (sku) createVariantMutation.mutate({ sku, price: formData.base_price, stock: 0 });
                 }}
               >
-                <Plus size={16} className="mr-2" /> Add New SKU
+                <Plus size={16} className="mr-2" /> Nouveau SKU
               </button>
             </div>
 
@@ -186,10 +272,10 @@ const EditProductPage: React.FC = () => {
               <table className="data-table">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th>Variant Attributes</th>
+                    <th>Attributs de Variante</th>
                     <th>SKU</th>
-                    <th>Stock Level</th>
-                    <th className="text-center">Feeding Logic</th>
+                    <th>Niveau de Stock</th>
+                    <th className="text-center">Alimentation Stock</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -201,7 +287,7 @@ const EditProductPage: React.FC = () => {
                     />
                   ))}
                   {(!product?.ProductVariants || product.ProductVariants.length === 0) && (
-                    <tr><td colSpan={4} className="text-center p-12 text-muted italic">No variants found. Add a SKU to manage stock.</td></tr>
+                    <tr><td colSpan={4} className="text-center p-12 text-muted italic">Aucune variante trouvée. Ajoutez un SKU pour gérer le stock.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -212,9 +298,9 @@ const EditProductPage: React.FC = () => {
                   <AlertCircle size={16} />
                </div>
                <div className="space-y-1">
-                  <p className="text-sm font-bold text-slate-800 m-0">Inventory Policy</p>
+                  <p className="text-sm font-bold text-slate-800 m-0">Politique d'Inventaire</p>
                   <p className="text-xs text-slate-500 m-0 leading-relaxed">
-                    Stock updates are atomic. "Feeding" stock adds to the current balance. Total stock is recalculated across all active variants.
+                    Les mises à jour de stock sont atomiques. "Alimenter" ajoute au solde actuel. Le stock total est recalculé sur toutes les variantes actives.
                   </p>
                </div>
             </div>
@@ -223,9 +309,9 @@ const EditProductPage: React.FC = () => {
 
         <div className="space-y-8">
           <section className="chart-card">
-            <h2 className="text-xl font-bold mb-6">Price Controller</h2>
+            <h2 className="text-xl font-bold mb-6">Contrôleur de Prix</h2>
             <div className="form-group mb-6">
-              <label className="block text-sm font-bold mb-2">Display Price (TND)*</label>
+              <label className="block text-sm font-bold mb-2">Prix d'Affichage (TND)*</label>
               <div className="relative">
                 <input 
                   className="form-input pl-12 font-bold text-xl" 
@@ -237,18 +323,18 @@ const EditProductPage: React.FC = () => {
                 />
                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">DT</div>
               </div>
-              <p className="text-[10px] text-muted mt-3 uppercase tracking-widest font-bold">Syncs with all variants</p>
+              <p className="text-[10px] text-muted mt-3 uppercase tracking-widest font-bold">Synchronisé avec toutes les variantes</p>
             </div>
           </section>
 
           <section className="chart-card bg-red-50/50 border-red-100">
              <div className="flex items-center gap-2 mb-4 text-red-600">
                 <Trash2 size={18} />
-                <h3 className="text-sm font-bold m-0 uppercase tracking-wider">Danger Zone</h3>
+                <h3 className="text-sm font-bold m-0 uppercase tracking-wider">Zone de Danger</h3>
              </div>
-             <p className="text-xs text-red-600/70 mb-6">Once deleted, a product and all its sales history cannot be recovered.</p>
+             <p className="text-xs text-red-600/70 mb-6">Une fois supprimé, un produit et tout son historique de vente ne peuvent plus être récupérés.</p>
              <button className="btn btn-danger btn-ghost btn-sm w-full font-bold border-red-200 hover:bg-red-100">
-                Delete Product Permanently
+                Supprimer le Produit Définitivement
              </button>
           </section>
         </div>
@@ -300,7 +386,7 @@ const VariantRow = ({ variant, onUpdate }: { variant: any, onUpdate: (data: any)
             <div className="absolute left-0 top-full mt-2 hidden group-focus-within/attr:block group-hover/attr:block bg-white border border-gray-100 shadow-2xl rounded-2xl p-4 z-50 min-w-[240px] animate-in fade-in slide-in-from-top-2 duration-200">
                <div className="flex items-center gap-2 mb-3 text-gray-400">
                   <Tag size={12} />
-                  <span className="text-[10px] uppercase font-bold tracking-widest">Link Attribute</span>
+                  <span className="text-[10px] uppercase font-bold tracking-widest">Lier un Attribut</span>
                </div>
                <div className="space-y-3 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
                   {allAttributes?.map((attr: any) => (
@@ -323,7 +409,7 @@ const VariantRow = ({ variant, onUpdate }: { variant: any, onUpdate: (data: any)
             </div>
           </div>
 
-          {(!variant.AttributeValues || variant.AttributeValues.length === 0) && <span className="text-muted italic text-[10px] uppercase tracking-wide opacity-50 ml-2">No attributes linked</span>}
+          {(!variant.AttributeValues || variant.AttributeValues.length === 0) && <span className="text-muted italic text-[10px] uppercase tracking-wide opacity-50 ml-2">Aucun attribut lié</span>}
         </div>
       </td>
       <td className="tabular text-xs font-mono text-slate-500 tracking-tighter">{variant.sku}</td>
@@ -361,7 +447,7 @@ const VariantRow = ({ variant, onUpdate }: { variant: any, onUpdate: (data: any)
            <div className="w-px h-6 bg-gray-200 mx-1"></div>
            <input 
              type="number" 
-             placeholder="Set"
+             placeholder="Fixer"
              className="w-16 h-10 px-2 rounded-xl bg-gray-50 border border-gray-200 text-xs font-bold text-center tabular focus:border-primary focus:ring-0 outline-none"
              defaultValue={variant.stock}
              onBlur={(e) => handleDirectStockUpdate(parseInt(e.target.value) || 0)}

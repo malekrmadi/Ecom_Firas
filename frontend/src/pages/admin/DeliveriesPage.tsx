@@ -7,7 +7,7 @@ const pendingOrders = orders.filter(o => o.status === "Pending" || o.status === 
 const DeliveriesPage: React.FC = () => (
   <AdminLayout>
     <div className="admin-page-header">
-      <h1>Delivery Management</h1>
+      <h1>Gestion des Livraisons</h1>
     </div>
 
     <div className="delivery-grid">
@@ -15,19 +15,19 @@ const DeliveriesPage: React.FC = () => (
         <div className="delivery-card" key={agent.id}>
           <h3>{agent.name}</h3>
           <p className="zone">{agent.zone}</p>
-          <div className="delivery-stat"><span className="label">Active Orders</span><span className="value">{agent.activeOrders}</span></div>
-          <div className="delivery-stat"><span className="label">Phone</span><span className="value">{agent.phone}</span></div>
+          <div className="delivery-stat"><span className="label">Commandes Actives</span><span className="value">{agent.activeOrders}</span></div>
+          <div className="delivery-stat"><span className="label">Téléphone</span><span className="value">{agent.phone}</span></div>
         </div>
       ))}
     </div>
 
     <div className="table-wrapper">
       <div className="table-toolbar">
-        <h3 style={{ fontSize: "1rem", fontWeight: 600 }}>Unassigned Orders</h3>
+        <h3 style={{ fontSize: "1rem", fontWeight: 600 }}>Commandes Non Assignées</h3>
       </div>
       <table className="data-table">
         <thead>
-          <tr><th>Order ID</th><th>Customer</th><th>Governorate</th><th>Status</th><th>Assign To</th></tr>
+          <tr><th>ID Commande</th><th>Client</th><th>Gouvernorat</th><th>Statut</th><th>Assigner à</th></tr>
         </thead>
         <tbody>
           {pendingOrders.map(o => (
@@ -38,7 +38,7 @@ const DeliveriesPage: React.FC = () => (
               <td><span className={`badge badge-${o.status.toLowerCase()}`}>{o.status}</span></td>
               <td>
                 <select className="status-select">
-                  <option value="">Select agent</option>
+                  <option value="">Sélectionner un agent</option>
                   {deliveryAgents.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                 </select>
               </td>

@@ -112,10 +112,17 @@
 .hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: #0f172a;
   min-height: 520px;
   display: flex;
   align-items: center;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.4) 60%, transparent 100%);
+  z-index: 1;
 }
 .hero::after {
   content: '';
@@ -135,39 +142,37 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(79, 70, 229, 0.1);
-  color: #818cf8;
+  background: rgba(79, 70, 229, 0.2);
+  color: #a5b4fc;
   padding: 8px 16px;
   border-radius: var(--radius-full);
   font-size: 0.875rem;
   font-weight: 700;
   margin-bottom: 24px;
-  border: 1px solid rgba(79, 70, 229, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .hero h1 {
-  font-size: 4rem;
+  font-size: 3.5rem;
   font-weight: 800;
   color: #ffffff;
-  line-height: 1;
+  line-height: 1.1;
   margin-bottom: 24px;
   letter-spacing: -2px;
 }
 .hero p {
-  font-size: 1.25rem;
-  color: #94a3b8;
+  font-size: 1.125rem;
+  color: #cbd5e1;
   margin-bottom: 40px;
   line-height: 1.6;
 }
-.hero-actions { display: flex; gap: 16px; }
+.hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
 .hero-img {
   position: absolute;
   right: 0; top: 0;
-  width: 50%;
+  width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.4;
-  mask-image: linear-gradient(to left, transparent, black 60%);
-  -webkit-mask-image: linear-gradient(to left, transparent, black 60%);
+  object-position: center;
   z-index: 0;
 }
 
@@ -440,11 +445,12 @@
   cursor: pointer;
   transition: all 0.2s var(--ease);
 }
-.category-tab:hover { border-color: var(--primary); color: var(--primary); }
+.category-tab:hover { border-color: var(--accent); color: var(--accent); }
 .category-tab.active {
-  background: var(--primary);
-  color: #fff;
-  border-color: var(--primary);
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 /* ===== PRODUCT PAGE ===== */
@@ -564,12 +570,13 @@
   background: var(--bg-main);
   transition: all 0.15s var(--ease);
 }
-.variant-option:hover { border-color: var(--primary); }
+.variant-option:hover { border-color: var(--primary); background: var(--bg-subtle); }
 .variant-option.selected {
-  background: var(--primary-light);
+  background: var(--primary);
   border-color: var(--primary);
-  color: var(--primary);
-  font-weight: 600;
+  color: var(--primary-text);
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
 }
 .add-to-cart-section {
   display: flex;
@@ -826,6 +833,64 @@
   text-align: center;
   font-size: 0.8125rem;
 }
+.footer-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  color: #94a3b8;
+  transition: all 0.25s;
+}
+.footer-social-link:hover {
+  background: var(--primary);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+/* ===== HERO BUTTONS ===== */
+.btn-hero {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 700;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  transition: all 0.3s var(--ease-spring);
+  cursor: pointer;
+}
+.btn-hero:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.1);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+}
+.btn-hero-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 700;
+  background: transparent;
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.4);
+  transition: all 0.3s var(--ease-spring);
+  cursor: pointer;
+}
+.btn-hero-outline:hover {
+  background: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.8);
+  transform: translateY(-3px);
+}
+
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {

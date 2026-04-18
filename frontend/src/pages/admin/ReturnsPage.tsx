@@ -15,20 +15,20 @@ const ReturnsPage: React.FC = () => {
       <div className="admin-page-header">
         <div className="flex items-center gap-3">
           <RotateCcw className="text-primary" size={28} />
-          <h1>Returned Items</h1>
+          <h1>Articles Retournés</h1>
         </div>
-        <p className="text-muted">History of all processed customer returns and their impact on inventory.</p>
+        <p className="text-muted">Historique des retours clients traités et leur impact sur l'inventaire.</p>
       </div>
 
       <div className="table-wrapper">
         <table className="data-table">
           <thead>
             <tr>
-              <th>Return ID</th>
-              <th>Order ID</th>
+              <th>ID Retour</th>
+              <th>ID Commande</th>
               <th>Date</th>
-              <th>Reason</th>
-              <th>Status</th>
+              <th>Motif</th>
+              <th>Statut</th>
             </tr>
           </thead>
           <tbody>
@@ -38,7 +38,7 @@ const ReturnsPage: React.FC = () => {
                 <td>
                   <div className="flex flex-col">
                     <span className="font-semibold">#{r.order_id}</span>
-                    <span className="text-xs text-muted">Customer ID: {r.customer_id}</span>
+                    <span className="text-xs text-muted">ID Client : {r.customer_id}</span>
                   </div>
                 </td>
                 <td className="tabular">
@@ -53,15 +53,15 @@ const ReturnsPage: React.FC = () => {
                   </div>
                 </td>
                 <td>
-                  <span className="badge badge-returned">Returned</span>
+                  <span className="badge badge-returned">Retourné</span>
                 </td>
               </tr>
             ))}
             {!returns?.length && !isLoading && (
-              <tr><td colSpan={5} className="text-center p-12 text-muted">No returns recorded yet.</td></tr>
+              <tr><td colSpan={5} className="text-center p-12 text-muted">Aucun retour enregistré pour le moment.</td></tr>
             )}
             {isLoading && (
-              <tr><td colSpan={5} className="text-center p-12">Loading returns...</td></tr>
+              <tr><td colSpan={5} className="text-center p-12">Chargement des retours...</td></tr>
             )}
           </tbody>
         </table>
