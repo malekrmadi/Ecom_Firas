@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import AdminLayout from "@/components/admin/AdminLayout";
 import { Send, Bot, User, Sparkles, PieChart, ShoppingBag, Users, TrendingUp, ChevronRight, Loader2 } from "lucide-react";
+import { api } from "@/lib/api";
 
 interface Message {
   id: string;
@@ -10,10 +11,10 @@ interface Message {
 }
 
 const QUICK_PROMPTS = [
-  { label: "Nombre total de produits", icon: ShoppingBag, query: "Quel est le nombre total de produits en stock ?" },
-  { label: "Commandes cette semaine", icon: PieChart, query: "Combien de commandes avons-nous reçues cette semaine ?" },
-  { label: "Top clients (retours)", icon: Users, query: "Quels clients ont effectué le plus de retours ?" },
-  { label: "Chiffre d'affaires du mois", icon: TrendingUp, query: "Quel est le chiffre d'affaires total pour ce mois ?" },
+  { label: "💰 CA Global", icon: TrendingUp, query: "Quel est mon chiffre d'affaires global ?" },
+  { label: "🏆 Top 3 Produits", icon: ShoppingBag, query: "Quels sont mes 3 meilleurs produits en revenus ?" },
+  { label: "👑 Top Clients", icon: Users, query: "Qui sont mes meilleurs clients ?" },
+  { label: "⚠️ Retours", icon: PieChart, query: "Quels clients font le plus de retours ?" },
 ];
 
 const MyStoreAgentPage: React.FC = () => {
@@ -21,7 +22,7 @@ const MyStoreAgentPage: React.FC = () => {
     {
       id: "1",
       role: "assistant",
-      content: "Bonjour ! Je suis votre assistant MyStore. Je peux vous aider à analyser vos statistiques, gérer vos stocks ou répondre à vos questions sur vos clients. Que souhaitez-vous savoir aujourd'hui ?",
+      content: "Bonjour ! Je suis votre assistant MyStore. Je suis maintenant connecté à vos données réelles. Je peux vous donner votre chiffre d'affaires, vos meilleurs produits ou analyser vos clients. Que souhaitez-vous savoir ?",
       timestamp: new Date(),
     },
   ]);
@@ -37,6 +38,10 @@ const MyStoreAgentPage: React.FC = () => {
     scrollToBottom();
   }, [messages, isTyping]);
 
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('fr-TN', { style: 'currency', currency: 'TND' }).format(val);
+  };
+
   const handleSend = async (content: string) => {
     if (!content.trim()) return;
 
@@ -51,17 +56,62 @@ const MyStoreAgentPage: React.FC = () => {
     setInput("");
     setIsTyping(true);
 
-    // Simulation de réponse IA
-    setTimeout(() => {
-      const botMsg: Message = {
+    try {
+      let botResponse = "";
+      const lowerContent = content.toLowerCase();
+
+      if (lowerContent.includes("chiffre d'affaires") || lowerContent.includes("ca global")) {
+        const { data } = await api.get('/chatbot/revenue/total');
+        botResponse = `Votre chiffre d'affaires global total s'élève à **${formatCurrency(data.total_revenue || 0)}**. C'est un excellent résultat basé sur vos commandes livrées !`;
+      } 
+      else if (lowerContent.includes("produits") && (lowerContent.includes("meilleurs") || lowerContent.includes("top"))) {
+        const { data } = await api.get('/chatbot/revenue/top-products?limit=3');
+        if (data.length > 0) {
+          const list = data.map((p: any, i: number) => `${i + 1}. **${p.product_name}** (${formatCurrency(p.revenue)})`).join("\n");
+          botResponse = `Voici vos 3 meilleurs produits en termes de chiffre d'affaires :\n\n${list}\n\nCes produits tirent votre croissance vers le haut !`;
+        } else {
+          botResponse = "Je n'ai pas encore assez de données de ventes pour identifier vos meilleurs produits.";
+        }
+      }
+      else if (lowerContent.includes("clients") && (lowerContent.includes("meilleurs") || lowerContent.includes("top"))) {
+        const { data } = await api.get('/chatbot/orders/top-customers?limit=5');
+        if (data.length > 0) {
+          const list = data.map((c: any, i: number) => `${i + 1}. **${c.customer_name}** (${c.order_count} commandes)`).join("\n");
+          botResponse = `Vos clients les plus fidèles sont :\n\n${list}\n\nIls méritent peut-être un petit geste commercial !`;
+        } else {
+          botResponse = "Je n'ai pas trouvé assez d'historique de commandes pour lister vos meilleurs clients.";
+        }
+      }
+      else if (lowerContent.includes("retours")) {
+        const { data } = await api.get('/chatbot/returns/top?limit=3');
+        if (data.length > 0) {
+          const list = data.map((c: any, i: number) => `• **${c.customer_name}** : ${c.count} retours`).join("\n");
+          botResponse = `Attention, voici les clients ayant effectué le plus de retours :\n\n${list}\n\nIl serait peut-être utile de vérifier les raisons de ces retours avec eux.`;
+        } else {
+          botResponse = "Bonne nouvelle ! Aucun retour significatif n'a été enregistré récemment.";
+        }
+      }
+      else {
+        // Fallback for general questions
+        botResponse = "C'est une question intéressante ! Pour l'instant, je peux surtout vous aider avec vos chiffres de vente, vos top produits/clients et vos retours. Essayez de me poser une question plus spécifique sur vos performances.";
+      }
+
+      setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: `C'est une excellente question ! Actuellement, je suis en phase de préparation pour me connecter à vos données réelles (API). Bientôt, je pourrai vous donner des analyses précises sur "${content}".`,
+        content: botResponse,
         timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, botMsg]);
+      }]);
+    } catch (err) {
+      setMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "Désolé, j'ai rencontré une difficulté technique en essayant de récupérer vos données. Veuillez vérifier que votre connexion au serveur est active.",
+        timestamp: new Date(),
+      }]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -74,10 +124,10 @@ const MyStoreAgentPage: React.FC = () => {
               <Bot size={28} />
             </div>
             <div>
-              <h1 className="text-xl font-black m-0 leading-tight tracking-tight uppercase">MyStore Agent <span className="text-xs bg-red-600 px-2 py-0.5 rounded ml-2">v2.0 FIXED</span></h1>
+              <h1 className="text-xl font-black m-0 leading-tight tracking-tight uppercase text-white">MyStore Agent</h1>
               <p className="text-slate-400 text-sm m-0 flex items-center gap-1 font-bold">
                 <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></span>
-                Assistant Connecté • Haute Visibilité
+                Assistant Connecté • Données Réelles
               </p>
             </div>
           </div>
@@ -94,7 +144,7 @@ const MyStoreAgentPage: React.FC = () => {
                 }`}>
                   {msg.role === "user" ? <User size={20} /> : <Bot size={20} />}
                 </div>
-                <div className={`p-4 rounded-2xl shadow-md text-base leading-relaxed font-bold ${
+                <div className={`p-4 rounded-2xl shadow-md text-base leading-relaxed font-bold whitespace-pre-wrap ${
                   msg.role === "user" 
                     ? "bg-slate-900 text-white rounded-tr-none border-2 border-slate-700" 
                     : "bg-slate-100 text-slate-900 border-2 border-slate-200 rounded-tl-none"
@@ -115,7 +165,7 @@ const MyStoreAgentPage: React.FC = () => {
                 </div>
                 <div className="bg-white border border-gray-100 p-4 rounded-2xl rounded-tl-none shadow-sm flex items-center gap-2">
                   <Loader2 size={16} className="animate-spin text-primary" />
-                  <span className="text-xs text-muted font-medium">L'agent analyse vos données...</span>
+                  <span className="text-xs text-slate-500 font-black">L'agent analyse vos données...</span>
                 </div>
               </div>
             </div>
